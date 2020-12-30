@@ -1,0 +1,4 @@
+# These are the mandatory requirements that will always remain the same
+telethon==1.14.0
+nest_asyncio
+gitpython
