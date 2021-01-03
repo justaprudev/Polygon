@@ -8,13 +8,12 @@ from os import execl
 from env import env
 import nest_asyncio
 import telethon
-import logging
 import asyncio
 import sys
 import re
 
 class Polygon(telethon.TelegramClient):
-    def __init__(self, session, **credentials):
+    def __init__(self, logger, session, **credentials):
         self.name = "Polygon"
         credentials = {
             "device_model": f"Userbot",
@@ -27,7 +26,7 @@ class Polygon(telethon.TelegramClient):
         self.env = env
         self.memory = lambda: self.memory.__dict__
         self.location = Path(__file__).parent
-        self.log = logging.getLogger("Polygon").info
+        self.log = logger.info
         super().__init__(session, **credentials)
         nest_asyncio.apply(self.loop)
         self.loop.run_until_complete(self._connect())
