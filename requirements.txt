@@ -1,4 +1,6 @@
 # These are the mandatory requirements that will always remain the same
+psycopg2-binary
+sqlalchemy
 telethon==1.14.0
 nest_asyncio
 gitpython

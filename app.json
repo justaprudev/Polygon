@@ -1,12 +1,12 @@
 {
   "name": "Polygon",
-  "description": "The first clean & simple telegSram userbot that takes advantage of Intellivoid Services!",
+  "description": "The first clean & simple telegram userbot with a very useful database in its backpocket.",
   "logo": "https://raw.githubusercontent.com/justaprudev/polygon/master/logo.png",
   "keywords": [
     "telegram",
     "userbot",
     "polygon",
-    "intellivoid",
+    "database",
     "modular",
     "productivity",
     "python"
@@ -16,23 +16,20 @@
   "success_url": "https://t.me/justaprudev",
   "env": {
     "APP_ID": {
-      "description": "Get this value from my.telegram.org! Please do not steal",
+      "description": "Get this value from my.telegram.org! Please do not steal!",
       "value": ""
     },
     "API_HASH": {
-      "description": "Get this value from my.telegram.org! Please do not steal",
+      "description": "Get this value from my.telegram.org! Please do not steal!",
       "value": ""
     },
     "SESSION": {
-      "description": "Get this value by running python3 session.py locally",
+      "description": "Get this value from tgsession.justaprudev.repl.run.",
       "value": ""
     }
   },
   "addons": [{
-    "plan": "heroku-postgresql",
-    "options": {
-      "version": "9.6"
-    }
+    "plan": "heroku-postgresql"
   }],
   "buildpacks": [{
     "url": "heroku/python"
