@@ -64,3 +64,12 @@ async def reload(e):
 async def restart(e):
     await e.edit("Polygon will be back soon!\nRun .ping to check if its back.")
     polygon.restart()
+
+@polygon.on(pattern="logs")
+async def logs(e):
+    await e.edit("`Looking for logs..`")
+    if Path("polygon.log").exists():
+        await e.respond(file="polygon.log")
+        await e.delete()
+    else:
+        await e.edit("`polygon.log not found!`")
