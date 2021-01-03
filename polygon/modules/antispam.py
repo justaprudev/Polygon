@@ -1,6 +1,7 @@
 # This file is distributed as a part of the polygon project (justaprudev.github.io/polygon)
 # By justaprudev
 
+import re
 import asyncio
 from pathlib import Path
 from telethon.tl import functions
@@ -77,6 +78,13 @@ async def antispam(e):
         if uid in PREVIOUS_MESSAGES:
             await PREVIOUS_MESSAGES[uid].delete()
         PREVIOUS_MESSAGES[uid] = response
+
+@polygon.on(outgoing=True, func=lambda e: e.is_private)
+async def autoapprove(e):
+    uid = e.chat_id
+    if not is_approved(uid):
+        if not re.match("^(.)disapprove$", e.text):
+            approve(uid)
 
 @polygon.on(pattern="approve", func=lambda e: e.is_private)
 async def approve_pm(e):
