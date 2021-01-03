@@ -1,6 +1,7 @@
 # This file is distributed as a part of the polygon project (justaprudev.github.io/polygon)
 # By justaprudev
 
+from .database import Database
 from pathlib import Path
 import importlib.util
 from os import execl
@@ -21,6 +22,7 @@ class Polygon(telethon.TelegramClient):
             "lang_code": "en",
             **credentials
         }
+        self.db = Database()
         self.modules = {}
         self.env = env
         self.memory = lambda: self.memory.__dict__
