@@ -26,7 +26,7 @@ class Polygon(telethon.TelegramClient):
         self.env = env
         self.memory = lambda: self.memory.__dict__
         self.location = Path(__file__).parent
-        self.log = logger.info
+        self.log = logger   .info
         super().__init__(session, **credentials)
         nest_asyncio.apply(self.loop)
         self.loop.run_until_complete(self._connect())
@@ -46,7 +46,7 @@ class Polygon(telethon.TelegramClient):
             kwargs["outgoing"] = True
         if "pattern" in args:
             kwargs["pattern"] = re.compile(f"\\{prefix}" + kwargs["pattern"])
-        elif prefix and not "incoming" in args:
+        elif prefix != ".":
             kwargs["pattern"] = re.compile(f"\\{prefix}")
         return super().on(telethon.events.NewMessage(**kwargs))
 
