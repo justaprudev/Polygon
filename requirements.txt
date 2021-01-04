@@ -1,4 +1,2 @@
 # These are the optional requirements that will continue to change over time
-psycopg2-binary
-sqlalchemy
 aria2p

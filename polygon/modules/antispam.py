@@ -2,7 +2,6 @@
 # By justaprudev
 
 import re
-import asyncio
 from pathlib import Path
 from telethon.tl import functions
 

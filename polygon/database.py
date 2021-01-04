@@ -1,3 +1,6 @@
+# This file is distributed as a part of the polygon project (justaprudev.github.io/polygon)
+# By justaprudev
+
 import json
 from env import env
 from pathlib import Path
