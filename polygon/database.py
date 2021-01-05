@@ -3,10 +3,9 @@
 
 import json
 from env import env
-from pathlib import Path
-from sqlalchemy import create_engine, Column, String, TypeDecorator
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, Column, String, TypeDecorator
 
 engine = create_engine(env.DATABASE_URL)
 Base = declarative_base(bind=engine)
@@ -23,7 +22,7 @@ class Json(TypeDecorator):
         return json.loads(value)
 
 class Variable(Base):
-    __tablename__ = Path(__file__).stem
+    __tablename__ = "variables"
     name = Column(String(), primary_key=True)
     value = Column(Json())
     def __init__(self, name, value):
@@ -82,6 +81,10 @@ class Database():
         return False
 
     def _query(self, name=None):
+        query = session.query(Variable)
         if name:
-            return session.query(Variable).filter_by(name=name).first()
-        return session.query(Variable).all()
+            results = query.filter_by(name=name).first()
+        else:    
+            results = query.all()
+        session.close()
+        return results
