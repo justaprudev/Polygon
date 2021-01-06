@@ -32,6 +32,7 @@ class Variable(Base):
 class Database():
     def __init__(self):
         Variable.__table__.create(checkfirst=True)
+        self._meta = Base.metadata
 
     def get(self, name: str, default=None):
         variable = self._query(name)
