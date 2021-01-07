@@ -20,14 +20,14 @@ def is_approved(uid):
     return False
 
 def approve(uid):
-    if uid not in APPROVED_CACHE:
+    if not is_approved(uid):
         APPROVED_CACHE.append(uid)
         set_approved(APPROVED_CACHE)
         return True
     return False
 
 def disapprove(uid):
-    if uid in APPROVED_CACHE:
+    if is_approved(uid):
         APPROVED_CACHE.remove(uid)
         set_approved(APPROVED_CACHE)
         return True
@@ -82,7 +82,7 @@ async def antispam(e):
 async def autoapprove(e):
     uid = e.chat_id
     if not is_approved(uid):
-        if not re.match("^(.)disapprove$", e.text):
+        if not re.match("^(.)disapprove$", e.text) and not re.match("^(.)approve$", e.text):
             approve(uid)
 
 @polygon.on(pattern="approve", func=lambda e: e.is_private)
