@@ -43,6 +43,7 @@ GMUTE_CACHE = get_gmuted()
 @polygon.on(incoming=True, forwards=None)
 async def gmute(e):
     sender = await e.get_sender()
+    uid = None
     if sender:
         try: uid = sender.id
         except: return
@@ -93,7 +94,10 @@ async def get_user(e):
             await e.edit("`Give me a username/id!`")
             return None, None
     else:
-        try: sender = await polygon.get_entity(user)
+        try:
+            try: user = int(user)
+            except: pass
+            sender = await polygon.get_entity(user)
         except:
             await e.edit(f"`{user}` **user not found!**")
             return None, None
