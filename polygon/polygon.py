@@ -1,11 +1,11 @@
 # This file is distributed as a part of the polygon project (justaprudev.github.io/polygon)
 # By justaprudev
 
+from env import env, SimpleDotDict
 from .database import Database
 from pathlib import Path
 import importlib.util
 from os import execl
-from env import env
 import nest_asyncio
 import telethon
 import asyncio
@@ -24,7 +24,7 @@ class Polygon(telethon.TelegramClient):
         self.db = Database()
         self.modules = {}
         self.env = env
-        self.memory = lambda: self.memory.__dict__
+        self.memory = SimpleDotDict()
         self.location = Path(__file__).parent
         self.log = logger   .info
         super().__init__(session, **credentials)
