@@ -73,17 +73,18 @@ class Polygon(telethon.TelegramClient):
         for i in self.db.get("packs", []):
             pack = i.rsplit('/', 1)[-1].replace(".git", "")
             pack_path = self.module_path / "packs" / pack
-            Repo.clone_from(i, pack_path)
+            if not pack_path.exists():
+                Repo.clone_from(i, pack_path)
             requirements = pack_path / "requirements.txt"
             if requirements.exists():
                 for l in open(requirements, "r").read().splitlines():
                     if not l.startswith("#"):
                         subprocess.run(["pip", "install", l])
-            # try:
-            self.load_from_directory(pack_path)
-            # except:
-            #     self.log(f"Pack {pack} is not supported.")
-            #     shutil.rmtree(pack_path)
+            try:
+                self.load_from_directory(pack_path)
+            except:
+                self.log(f"Pack {pack} is not supported.")
+                shutil.rmtree(pack_path)
         
 
     async def shell(self, cmd):
