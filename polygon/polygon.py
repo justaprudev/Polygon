@@ -31,8 +31,7 @@ class Polygon(telethon.TelegramClient):
         nest_asyncio.apply(self.loop)
         self.loop.run_until_complete(self._connect())
         self._load(self.location / "__main__.py")
-        for i in Path(self.location / "modules").glob("*.py"):
-            self.load(i.stem)
+        self.load_from_directory(self.location / "modules")
         self.log(f"Modules loaded: {list(self.modules.keys())}")
 
     def restart(self):
@@ -52,14 +51,24 @@ class Polygon(telethon.TelegramClient):
 
     def load(self, name):
         self._load(self.location / "modules" / f"{name}.py")
+    
+    def load_from_directory(self, dirpath):
+        for i in Path(dirpath).glob("*.py"):
+            self._load(str(i))
 
-    def unload(self, shortname):
-        name = self.modules[shortname].__name__
-        for i in reversed(range(len(self._event_builders))):
-            _, cb = self._event_builders[i]
-            if cb.__module__ == name:
-                del self._event_builders[i]
-        del self.modules[shortname]
+    def unload(self, name):
+        event_builders = self._event_builders
+        for e in event_builders:
+            _, callback = e
+            if callback.__module__ == name:
+                event_builders.remove(e)
+
+        # name = self.modules[shortname].__name__
+        # for i in range(len(self._event_builders)):
+        #     _, cb = self._event_builders[i]
+        #     if cb.__module__ == name:
+        #         del self._event_builders[i]
+        # del self.modules[shortname]
 
     async def shell(self, cmd):
         proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE) 
@@ -73,14 +82,11 @@ class Polygon(telethon.TelegramClient):
 
     def _load(self, path):
         path = Path(path)
-        shortname = path.stem
-        name = f"{self.name}.{shortname}"
-        spec = importlib.util.spec_from_file_location(name, path)
-        mod = importlib.util.module_from_spec(spec)
-        self._inject(mod)
-        self.modules[shortname] = mod
-        spec.loader.exec_module(mod)
-        return shortname
+        spec = importlib.util.spec_from_file_location(path.stem, path)
+        module = importlib.util.module_from_spec(spec)
+        self._inject(module)
+        # self.modules[shortname] = mod
+        spec.loader.exec_module(module)
 
     def _inject(self, mod):
         mod.polygon = self
