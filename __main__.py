@@ -10,6 +10,6 @@ shutil.rmtree(clone_path / ".git")
 shutil.copytree(clone_path, ".", dirs_exist_ok=True)
 for l in open("requirements.txt", "r").read().splitlines():
     if not l.startswith("#"):
-        subprocess.run(f"pip install {l}", shell=True)
+        subprocess.run(["pip", "install", l])
 shutil.rmtree(clone_path)
 import polygon
