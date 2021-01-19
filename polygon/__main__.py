@@ -40,7 +40,6 @@ async def load(e):
     if e.pattern_match.group(1) == "un":
         if module in polygon.modules:
             polygon.unload(module)
-            polygon.modules.remove(module)
             output = f"Unloaded module {module} successfully"
         else:
             output = f"{module} is not loaded!"

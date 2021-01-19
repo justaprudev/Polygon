@@ -65,12 +65,10 @@ class Polygon(telethon.TelegramClient):
             self.modules.append(i.stem)
 
     def unload(self, name):
-        for event, callback in self.list_event_handlers():
+        for callback, event in self.list_event_handlers():
             if callback.__module__ == name:
-                self.log("Got here")
                 self.remove_event_handler(callback)
                 self.modules.remove(name)
-                break
 
     async def shell(self, cmd):
         proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE) 
