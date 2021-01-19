@@ -3,8 +3,9 @@
 
 from env import env, SimpleDotDict
 from .database import Database
+from importlib import util
 from pathlib import Path
-import importlib.util
+from git import Repo
 from os import execl
 import nest_asyncio
 import telethon
@@ -21,18 +22,23 @@ class Polygon(telethon.TelegramClient):
             "lang_code": "en",
             **credentials
         }
-        self.db = Database()
-        self.modules = {}
+        self.path = Path(__file__).parent
+        self.module_path = self.path / "modules"
         self.env = env
+        self.db = Database()
         self.memory = SimpleDotDict()
-        self.location = Path(__file__).parent
-        self.log = logger   .info
+        self.log = logger.info
+        self.modules = []
         super().__init__(session, **credentials)
         nest_asyncio.apply(self.loop)
         self.loop.run_until_complete(self._connect())
-        self._load(self.location / "__main__.py")
-        self.load_from_directory(self.location / "modules")
-        self.log(f"Modules loaded: {list(self.modules.keys())}")
+        self._load(self.path / "__main__.py")
+        self.load_from_directory(self.module_path)
+        for i in self.db.get("packs", []):
+            pack_path = self.module_path / "packs" / i.rsplit('/', 1)[-1].replace(".git", "")
+            Repo.clone_from(i, pack_path)
+            self.load_from_directory(pack_path)
+        self.log(f"Modules loaded: {list(self.modules)}")
 
     def restart(self):
         execl(sys.executable, sys.executable, *sys.argv)
@@ -50,25 +56,18 @@ class Polygon(telethon.TelegramClient):
         return super().on(telethon.events.NewMessage(**kwargs))
 
     def load(self, name):
-        self._load(self.location / "modules" / f"{name}.py")
+        name = self._load(self.module_path / f"{name}.py")
+        self.modules.append(name)
     
     def load_from_directory(self, dirpath):
         for i in Path(dirpath).glob("*.py"):
             self._load(str(i))
+            self.modules.append(i.stem)
 
     def unload(self, name):
-        event_builders = self._event_builders
-        for e in event_builders:
-            _, callback = e
+        for event, callback in self.list_event_handlers():
             if callback.__module__ == name:
-                event_builders.remove(e)
-
-        # name = self.modules[shortname].__name__
-        # for i in range(len(self._event_builders)):
-        #     _, cb = self._event_builders[i]
-        #     if cb.__module__ == name:
-        #         del self._event_builders[i]
-        # del self.modules[shortname]
+                self.remove_event_handler(callback)
 
     async def shell(self, cmd):
         proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE) 
@@ -82,11 +81,9 @@ class Polygon(telethon.TelegramClient):
 
     def _load(self, path):
         path = Path(path)
-        spec = importlib.util.spec_from_file_location(path.stem, path)
-        module = importlib.util.module_from_spec(spec)
-        self._inject(module)
-        # self.modules[shortname] = mod
+        name = path.stem
+        spec = util.spec_from_file_location(name, path)
+        module = util.module_from_spec(spec)
+        module.polygon = self
         spec.loader.exec_module(module)
-
-    def _inject(self, mod):
-        mod.polygon = self
+        return name

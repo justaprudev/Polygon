@@ -10,13 +10,13 @@ async def load(e):
         await e.edit("`Reply to a polygon module to load it.`")
         return
     await e.edit("`Trying to load module..`")
-    name = Path(reply.file.name).stem
-    path = polygon.location / "modules" / reply.file.name
+    path = polygon.module_path / reply.file.name
+    name = path.stem
     if path.exists():
         await e.edit("`Module already exists, overwriting..`")
         polygon.unload(name)
         path.unlink()
-    await polygon.download_media(reply, str(polygon.location / "modules"))
+    await polygon.download_media(reply, polygon.module_path)
     try:
         polygon.load(name)
     except Exception as exc:
@@ -27,38 +27,30 @@ async def load(e):
     await e.edit(f"`{output}!`")
 
 
-@polygon.on(pattern="unload (.*)")
-async def unload(e):
-    module = e.pattern_match.group(1)
-    path = polygon.location / "modules" / f"{module}.py"
+@polygon.on(pattern="(un|re)load ?(.*)")
+async def load(e):
+    module = e.pattern_match.group(2)
+    if not module:
+        await e.delete()
+        return
+    path = polygon.module_path / f"{module}.py"
     if not path.exists():
         await e.edit(f"`404: {module} not found!`")
         return
-    await e.edit(f"`Trying to unload module {module}..`")
-    try:
-        polygon.unload(module)
-        output = f"Unloaded module {module} successfully"
-    except Exception as exc:
-        await e.edit(f"The following error occured while unloading the module:\n`{exc}`")
-        return
+    if e.pattern_match.group(1) == "un":
+        if module in polygon.modules:
+            polygon.unload(module)
+            polygon.modules.remove(module)
+            output = f"Unloaded module {module} successfully"
+        else:
+            output = f"{module} is not loaded!"
+    else:
+        if module in polygon.modules:
+            polygon.unload(module)
+        polygon.load(module)
+        output = f"Reloaded module {module} successfully"
     polygon.log(output)
-    await e.edit(f"`{output}!`")
-
-@polygon.on(pattern="reload (.*)")
-async def reload(e):
-    await e.edit("`Reloading module..`")
-    module = e.pattern_match.group(1)
-    path = polygon.location / "modules" / f"{module}.py"
-    if not path.exists():
-        await e.edit("`Can't reload a module that doesnt exist!`")
-        return
-    if module in polygon.modules:
-        await e.edit(f"`Module {module} is already loaded!`")
-        return
-    polygon.load(path.stem)
-    output = f"Reloaded module {module} successfully"
-    polygon.log(output)
-    await e.edit(f"`{output}!`")
+    await e.edit(output)
 
 @polygon.on(pattern="restart")
 async def restart(e):
