@@ -50,7 +50,7 @@ async def load(e):
         polygon.load(module)
         output = f"Reloaded module {module} successfully"
     polygon.log(output)
-    await e.edit(output)
+    await e.edit(f"`{output}`")
 
 @polygon.on(pattern="restart")
 async def restart(e):
