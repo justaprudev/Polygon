@@ -35,15 +35,17 @@ class Polygon(telethon.TelegramClient):
         self._load(self.path / "__main__.py")
         self.load_from_directory(self.module_path)
         for i in self.db.get("packs", []):
-            pack_path = self.module_path / "packs" / i.rsplit('/', 1)[-1].replace(".git", "")
+            pack = i.rsplit('/', 1)[-1].replace(".git", "")
+            pack_path = self.module_path / "packs" / pack
             Repo.clone_from(i, pack_path)
-            self.load_from_directory(pack_path)
-        self.log(f"Modules loaded: {list(self.modules)}")
+            try: self.load_from_directory(pack_path)
+            except: self.log(f"Pack {pack} is not supported.")
+        self.log(f"Modules loaded: {self.modules}")
 
     def restart(self):
         execl(sys.executable, sys.executable, *sys.argv)
 
-    def on(self, prefix=".", **kwargs):
+    def on(self, prefix=".", edits=True, **kwargs):
         args = kwargs.keys()
         if "forwards" not in args:
             kwargs["forwards"] = False
@@ -53,6 +55,8 @@ class Polygon(telethon.TelegramClient):
             kwargs["pattern"] = re.compile(f"\\{prefix}" + kwargs["pattern"])
         elif prefix != ".":
             kwargs["pattern"] = re.compile(f"\\{prefix}")
+        if edits:
+            super().on(telethon.events.MessageEdited(**kwargs))
         return super().on(telethon.events.NewMessage(**kwargs))
 
     def load(self, name):
@@ -65,7 +69,7 @@ class Polygon(telethon.TelegramClient):
             self.modules.append(i.stem)
 
     def unload(self, name):
-        for callback, event in self.list_event_handlers():
+        for callback, _ in self.list_event_handlers():
             if callback.__module__ == name:
                 self.remove_event_handler(callback)
                 self.modules.remove(name)
