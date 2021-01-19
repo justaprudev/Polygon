@@ -45,7 +45,7 @@ class Polygon(telethon.TelegramClient):
     def restart(self):
         execl(sys.executable, sys.executable, *sys.argv)
 
-    def on(self, prefix=".", edits=True, **kwargs):
+    def on(self, prefix=".", **kwargs):
         args = kwargs.keys()
         if "forwards" not in args:
             kwargs["forwards"] = False
@@ -55,8 +55,6 @@ class Polygon(telethon.TelegramClient):
             kwargs["pattern"] = re.compile(f"\\{prefix}" + kwargs["pattern"])
         elif prefix != ".":
             kwargs["pattern"] = re.compile(f"\\{prefix}")
-        if edits:
-            super().on(telethon.events.MessageEdited(**kwargs))
         return super().on(telethon.events.NewMessage(**kwargs))
 
     def load(self, name):

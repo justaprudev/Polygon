@@ -3,7 +3,7 @@
 
 from pathlib import Path
 
-@polygon.on(pattern="load", edits=False)
+@polygon.on(pattern="load")
 async def load(e):
     reply = await e.get_reply_message()
     if not reply:
