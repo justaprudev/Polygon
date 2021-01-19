@@ -8,8 +8,10 @@ from pathlib import Path
 from git import Repo
 from os import execl
 import nest_asyncio
+import subprocess
 import telethon
 import asyncio
+import shutil
 import sys
 import re
 
@@ -34,12 +36,7 @@ class Polygon(telethon.TelegramClient):
         self.loop.run_until_complete(self._connect())
         self._load(self.path / "__main__.py")
         self.load_from_directory(self.module_path)
-        for i in self.db.get("packs", []):
-            pack = i.rsplit('/', 1)[-1].replace(".git", "")
-            pack_path = self.module_path / "packs" / pack
-            Repo.clone_from(i, pack_path)
-            try: self.load_from_directory(pack_path)
-            except: self.log(f"Pack {pack} is not supported.")
+        self.install_packs()
         self.log(f"Modules loaded: {self.modules}")
 
     def restart(self):
@@ -71,6 +68,23 @@ class Polygon(telethon.TelegramClient):
             if callback.__module__ == name:
                 self.remove_event_handler(callback)
                 self.modules.remove(name)
+
+    def install_packs(self):
+        for i in self.db.get("packs", []):
+            pack = i.rsplit('/', 1)[-1].replace(".git", "")
+            pack_path = self.module_path / "packs" / pack
+            Repo.clone_from(i, pack_path)
+            requirements = pack_path / "requirements.txt"
+            if requirements.exists():
+                for l in open("requirements.txt", "r").read().splitlines():
+                    if not l.startswith("#"):
+                        subprocess.run(["pip", "install", l])
+            try:
+                self.load_from_directory(pack_path)
+            except:
+                self.log(f"Pack {pack} is not supported.")
+                shutil.rmtree(pack_path)
+        
 
     async def shell(self, cmd):
         proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE) 
