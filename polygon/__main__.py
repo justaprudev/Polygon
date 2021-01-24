@@ -1,6 +1,7 @@
 # This file is distributed as a part of the polygon project (justaprudev.github.io/polygon)
 # By justaprudev
 
+import io
 from pathlib import Path
 
 @polygon.on(pattern="load")
@@ -28,7 +29,7 @@ async def load(e):
 
 
 @polygon.on(pattern="(un|re)load ?(.*)")
-async def load(e):
+async def unload_reload(e):
     module = e.pattern_match.group(2)
     if not module:
         await e.delete()
@@ -58,9 +59,14 @@ async def restart(e):
 
 @polygon.on(pattern="logs")
 async def logs(e):
+    log = Path("polygon.log")
     await e.edit("`Looking for logs..`")
-    if Path("polygon.log").exists():
-        await e.respond(file="polygon.log")
+    if log.exists():
+        # We need to reverse the logs in order to show the lastest first
+        reversed_logs = "".join(reversed(open(log, "r").readlines()))
+        stream = io.BytesIO(reversed_logs.encode())
+        stream.name = log.name
+        await e.respond(file=stream)
         await e.delete()
     else:
         await e.edit("`polygon.log not found!`")

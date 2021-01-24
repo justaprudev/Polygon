@@ -19,7 +19,7 @@ class Polygon(telethon.TelegramClient):
     def __init__(self, logger, session, **credentials):
         self.name = "Polygon"
         credentials = {
-            "device_model": f"Userbot",
+            "device_model": "Userbot",
             "app_version": f"// {self.name}",
             "lang_code": "en",
             **credentials
@@ -73,9 +73,8 @@ class Polygon(telethon.TelegramClient):
         for i in self.db.get("packs", []):
             pack = i.rsplit('/', 1)[-1].replace(".git", "")
             pack_path = self.module_path / "packs" / pack
-            if pack_path.exists():
-                shutil.rmtree(pack_path)
-            Repo.clone_from(i, pack_path)
+            if not pack_path.exists():
+                Repo.clone_from(i, pack_path)
             requirements = pack_path / "requirements.txt"
             if requirements.exists():
                 for l in open(requirements, "r").read().splitlines():
