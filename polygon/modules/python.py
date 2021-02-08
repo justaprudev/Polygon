@@ -69,12 +69,12 @@ def redirect_console_output(func):
 
 @redirect_console_output
 async def run_in_thread(code, e):
-    def sync_wrapper(code, e):
+    def sync_wrapper(loop, code, e):
         func = "async_wrapper"
         formatted_code = f"async def {func}(e):" + "".join([f"\n    {l}" for l in code.split("\n")])
         exec(formatted_code)
-        polygon.loop.run_until_complete(locals()[func](e))
-    thread = Thread(target=sync_wrapper, args=[code, e])
+        loop.run_until_complete(locals()[func](e))
+    thread = Thread(target=sync_wrapper, args=[polygon.loop, code, e])
     thread.start()
     five_ms = 5e-3
     while thread.is_alive():
