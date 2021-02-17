@@ -3,6 +3,7 @@
 
 from datetime import datetime
 
+
 @polygon.on(pattern="ping")
 async def ping(e):
     start = datetime.now()

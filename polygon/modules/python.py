@@ -9,6 +9,7 @@ from pathlib import Path
 from functools import wraps
 from threading import Thread
 
+
 @polygon.on(prefix=">")
 async def python(e):
     await e.edit("`Hmm, nice code..`")
@@ -23,22 +24,21 @@ async def python(e):
     try:
         stdout, stderr = await run_in_thread(code, e)
     except:
-        await e.edit(f"**Code**:\n```{code}```\n\n**Error**:\n```{traceback.format_exc()}```")
+        await e.edit(
+            f"**Code**:\n```{code}```\n\n**Error**:\n```{traceback.format_exc()}```"
+        )
         return
     output = f"**Code**:\n```{code}```\n\n**stderr**:\n{stderr}\n\n**stdout**:\n```{stdout}```"
     if len(output) > 4096:
         with io.BytesIO(str.encode(output)) as f:
             f.name = "python.txt"
             await polygon.send_file(
-                e.chat_id,
-                f,
-                force_document=True,
-                caption=code,
-                reply_to=reply
+                e.chat_id, f, force_document=True, caption=code, reply_to=reply
             )
             await e.delete()
             return
     await e.edit(output)
+
 
 def redirect_console_output(func):
     """ Makes a function always return console output (ignores returned output) """
@@ -54,26 +54,34 @@ def redirect_console_output(func):
         return output
 
     if asyncio.iscoroutinefunction(func):
+
         @wraps(func)
         async def wrapper(*args, **kwargs):
             defaults = set_out()
             await func(*args, **kwargs)
             return reset_out(defaults)
+
     else:
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             defaults = set_out()
             func(*args, **kwargs)
             return reset_out(defaults)
+
     return wrapper
+
 
 @redirect_console_output
 async def run_in_thread(code, e):
     def sync_wrapper(loop, code, e):
         func = "async_wrapper"
-        formatted_code = f"async def {func}(e):" + "".join([f"\n    {l}" for l in code.split("\n")])
+        formatted_code = f"async def {func}(e):" + "".join(
+            [f"\n    {l}" for l in code.split("\n")]
+        )
         exec(formatted_code)
         loop.run_until_complete(locals()[func](e))
+
     thread = Thread(target=sync_wrapper, args=[polygon.loop, code, e])
     thread.start()
     five_ms = 5e-3

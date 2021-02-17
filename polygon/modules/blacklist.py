@@ -11,12 +11,14 @@ def cache_blacklist() -> dict:
         blacklist = cache_blacklist()
     return blacklist
 
+
 def get_blacklist(chat_id) -> list:
     blacklist = BLACKLIST_CACHE.get(chat_id, None)
     if blacklist is None:
         BLACKLIST_CACHE[chat_id] = []
         blacklist = []
     return blacklist
+
 
 def add_blacklist(chat_id, text):
     blacklist = get_blacklist(chat_id)
@@ -26,6 +28,7 @@ def add_blacklist(chat_id, text):
         return True
     return False
 
+
 def remove_blacklist(chat_id, text):
     blacklist = get_blacklist(chat_id)
     if text in blacklist:
@@ -34,21 +37,22 @@ def remove_blacklist(chat_id, text):
         return True
     return False
 
+
 def clear_blacklist(chat_id):
     if chat_id in BLACKLIST_CACHE:
         del BLACKLIST_CACHE[chat_id]
     set_blacklist(BLACKLIST_CACHE)
     return True
 
+
 def set_blacklist(blacklist: dict):
-    polygon.db.add(
-        name=NAME,
-        value=blacklist
-    )
+    polygon.db.add(name=NAME, value=blacklist)
+
 
 # Constants
 NAME = Path(__file__).stem
 BLACKLIST_CACHE = cache_blacklist()
+
 
 @polygon.on(incoming=True)
 async def blacklist(e):
@@ -56,12 +60,14 @@ async def blacklist(e):
     message = e.text.lower()
     if chat_id in BLACKLIST_CACHE:
         sender = await e.get_sender()
-        if not sender: return
+        if not sender:
+            return
         for text in get_blacklist(chat_id):
             if text in message:
                 perms = await polygon.get_permissions(int(chat_id), sender)
                 if not perms.is_admin:
                     await e.delete()
+
 
 @polygon.on(pattern="addbl ?(.*)")
 async def addblacklist(e):
@@ -77,6 +83,7 @@ async def addblacklist(e):
     add_blacklist(chat_id, text)
     await e.edit(f"**Blacklisted** `{text}` **in this chat successfully!**")
 
+
 @polygon.on(pattern="rmbl ?(.*)")
 async def removeblacklist(e):
     chat_id = str(e.chat_id)
@@ -86,9 +93,12 @@ async def removeblacklist(e):
         await e.edit("**Cleared the blacklist in this chat successfully!**")
         return
     if remove_blacklist(chat_id, text):
-        await e.edit(f"**Removed** `{text}` **from the blacklist in this chat successfully!**")
+        await e.edit(
+            f"**Removed** `{text}` **from the blacklist in this chat successfully!**"
+        )
         return
     await e.edit(f"`{text}` **is not being blacklisted in this chat!**")
+
 
 @polygon.on(pattern="bl")
 async def blacklisted(e):

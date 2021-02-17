@@ -13,11 +13,13 @@ def get_approved() -> list:
         set_approved([777000, polygon.user.id])
         approved_users = get_approved()
     return approved_users
-        
+
+
 def is_approved(uid):
     if uid in APPROVED_CACHE:
         return True
     return False
+
 
 def approve(uid):
     if not is_approved(uid):
@@ -26,6 +28,7 @@ def approve(uid):
         return True
     return False
 
+
 def disapprove(uid):
     if is_approved(uid):
         APPROVED_CACHE.remove(uid)
@@ -33,11 +36,10 @@ def disapprove(uid):
         return True
     return False
 
+
 def set_approved(users: list):
-    polygon.db.add(
-        name=NAME,
-        value=users
-    )
+    polygon.db.add(name=NAME, value=users)
+
 
 # Constants
 PM_WARNS = {}
@@ -59,8 +61,10 @@ async def antispam(e):
     uid = e.chat_id
     sender = await e.get_sender()
     try:
-        if sender.bot: return
-    except: pass
+        if sender.bot:
+            return
+    except:
+        pass
     approved = is_approved(uid)
     if not approved:
         if uid not in PM_WARNS:
@@ -72,18 +76,24 @@ async def antispam(e):
             del PREVIOUS_MESSAGES[uid]
             del PM_WARNS[uid]
             return
-        response = await e.reply(f"{WARNING_MESSAGE}\n`Messages remaining: {int(5 - PM_WARNS[uid])} out of 5`")
+        response = await e.reply(
+            f"{WARNING_MESSAGE}\n`Messages remaining: {int(5 - PM_WARNS[uid])} out of 5`"
+        )
         PM_WARNS[uid] += 1
         if uid in PREVIOUS_MESSAGES:
             await PREVIOUS_MESSAGES[uid].delete()
         PREVIOUS_MESSAGES[uid] = response
 
+
 @polygon.on(outgoing=True, func=lambda e: e.is_private)
 async def autoapprove(e):
     uid = e.chat_id
     if not is_approved(uid):
-        if not re.match("^(.)disapprove$", e.text) and not re.match("^(.)approve$", e.text):
+        if not re.match("^(.)disapprove$", e.text) and not re.match(
+            "^(.)approve$", e.text
+        ):
             approve(uid)
+
 
 @polygon.on(pattern="approve", func=lambda e: e.is_private)
 async def approve_pm(e):
@@ -99,6 +109,7 @@ async def approve_pm(e):
     else:
         await e.edit("`This user is already approved!`")
 
+
 @polygon.on(pattern="disapprove", func=lambda e: e.is_private)
 async def disapprove_pm(e):
     await e.edit("`...`")
@@ -108,6 +119,7 @@ async def disapprove_pm(e):
         await e.edit("`Disapproved PM.`")
     else:
         await e.edit("`This user isnt approved!`")
+
 
 @polygon.on(pattern="listpms")
 async def list_pms(e):

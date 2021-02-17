@@ -10,11 +10,13 @@ def get_gmuted() -> list:
         set_gmuted([])
         gmuted_users = get_gmuted()
     return gmuted_users
-        
+
+
 def is_gmuted(uid):
     if uid in GMUTE_CACHE:
         return True
     return False
+
 
 def gmute_user(uid):
     if not is_gmuted(uid):
@@ -23,6 +25,7 @@ def gmute_user(uid):
         return True
     return False
 
+
 def ungmute_user(uid):
     if is_gmuted(uid):
         GMUTE_CACHE.remove(uid)
@@ -30,45 +33,52 @@ def ungmute_user(uid):
         return True
     return False
 
+
 def set_gmuted(users: list):
-    polygon.db.add(
-        name=NAME,
-        value=users
-    )
+    polygon.db.add(name=NAME, value=users)
+
 
 # Constants
 NAME = Path(__file__).stem
 GMUTE_CACHE = get_gmuted()
+
 
 @polygon.on(incoming=True, forwards=None)
 async def gmute(e):
     sender = await e.get_sender()
     uid = None
     if sender:
-        try: uid = sender.id
-        except: return
+        try:
+            uid = sender.id
+        except:
+            return
     if is_gmuted(uid):
         await e.delete()
+
 
 @polygon.on(pattern="gmute ?(.*)")
 async def gmuteuser(e):
     user, uid = await get_user(e)
-    if uid is None: return
+    if uid is None:
+        return
     gmuted = gmute_user(uid)
     if gmuted:
         await e.edit(f"**Successfully gmuted** `{user}`")
     else:
         await e.edit(f"`{user}` **is already gmuted!**")
 
+
 @polygon.on(pattern="ungmute ?(.*)")
 async def ungmuteuser(e):
     user, uid = await get_user(e)
-    if uid is None: return
+    if uid is None:
+        return
     ungmuted = ungmute_user(uid)
     if ungmuted:
         await e.edit(f"**Successfully ungmuted** `{user}`")
     else:
         await e.edit(f"`{user}` **was never gmuted!**")
+
 
 @polygon.on(pattern="listgmute")
 async def list_pms(e):
@@ -81,6 +91,7 @@ async def list_pms(e):
         message += f"\n* `{i}`"
     message += "\n\ntip: Run .whois <id> to get more info about the users."
     await e.edit(message)
+
 
 async def get_user(e):
     await e.edit("`...`")
@@ -95,8 +106,10 @@ async def get_user(e):
             return None, None
     else:
         try:
-            try: user = int(user)
-            except: pass
+            try:
+                user = int(user)
+            except:
+                pass
             sender = await polygon.get_entity(user)
         except:
             await e.edit(f"`{user}` **user not found!**")

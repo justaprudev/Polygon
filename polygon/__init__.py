@@ -1,17 +1,18 @@
 # This file is distributed as a part of the polygon project (justaprudev.github.io/polygon)
 # By justaprudev
 
-from telethon.sessions import StringSession
-from .polygon import Polygon
-from pathlib import Path
-from env import env
 import logging
+from pathlib import Path
+from telethon.sessions import StringSession
+from polygon import Polygon
+from env import env
+
 
 logging.basicConfig(level=logging.INFO)
 log_formatter = logging.Formatter(
     fmt="[%(levelname)s %(asctime)s] Module '%(module)s', function '%(funcName)s' at line %(lineno)d -> %(message)s",
-    datefmt="%d/%m/%Y %T %p"
-    )
+    datefmt="%d/%m/%Y %T %p",
+)
 logger = logging.getLogger()
 file_handler = logging.FileHandler("polygon.log")
 file_handler.setFormatter(log_formatter)
@@ -24,7 +25,7 @@ if session:
         logger=logger,
         session=StringSession(str(session)),
         api_id=env.APP_ID,
-        api_hash=env.API_HASH
+        api_hash=env.API_HASH,
     )
     polygon.run_until_disconnected()
 else:

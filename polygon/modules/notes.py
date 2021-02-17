@@ -11,13 +11,16 @@ def get_notes() -> dict:
         notes = get_notes()
     return notes
 
+
 def get_note(name):
     return NOTES_CACHE.get(name, None)
+
 
 def add_note(name, content):
     NOTES_CACHE[name] = content
     set_notes(NOTES_CACHE)
     return True
+
 
 def remove_note(name):
     if name in NOTES_CACHE:
@@ -26,16 +29,16 @@ def remove_note(name):
         return True
     return False
 
+
 def clear_notes():
     set_notes({})
     NOTES_CACHE.clear()
     return True
 
+
 def set_notes(notes: dict):
-    polygon.db.add(
-        name=NAME,
-        value=notes
-    )
+    polygon.db.add(name=NAME, value=notes)
+
 
 # Constants
 NAME = Path(__file__).stem
@@ -52,7 +55,7 @@ async def getnote(e):
         if type(content) is int:
             await e.edit("`Fetching file..`")
             f = await polygon.get_messages(polygon.user.id, ids=content)
-            await polygon.forward_messages(e.chat_id, f) # Forwarding is fast
+            await polygon.forward_messages(e.chat_id, f)  # Forwarding is fast
             await e.delete()
             return
         await e.respond(content)
@@ -60,20 +63,25 @@ async def getnote(e):
         return
     await e.edit(f"**Note** `{name}` **not found!**")
 
+
 @polygon.on(pattern="save ?(.*)")
 async def addnote(e):
     msg = e.pattern_match.group(1).split(maxsplit=1)
     reply = await e.get_reply_message()
-    try: name = msg[0]
+    try:
+        name = msg[0]
     except:
         await e.edit("`You need to give the note a name!`")
         return
-    try: content = msg[1]
+    try:
+        content = msg[1]
     except:
         if reply:
             if reply.media:
                 await e.edit("`Saving file..`")
-                f = await polygon.forward_messages(polygon.user.id, reply) # Forwarding is fast
+                f = await polygon.forward_messages(
+                    polygon.user.id, reply
+                )  # Forwarding is fast
                 content = int(f.id)
                 await f.reply(
                     f"`[DO NOT DELETE]`\
@@ -89,9 +97,11 @@ async def addnote(e):
     add_note(name, content)
     await e.edit(f"**Saved note** `{name}` **successfully!**")
 
+
 @polygon.on(pattern="clear ?(.*)")
 async def removenote(e):
-    try: name = e.pattern_match.group(1).split(maxsplit=1)[0]
+    try:
+        name = e.pattern_match.group(1).split(maxsplit=1)[0]
     except:
         clear_notes()
         await e.edit("**Cleared all personal notes successfully!**")
@@ -100,6 +110,7 @@ async def removenote(e):
         await e.edit(f"**Removed note** `{name}` **successfully!**")
         return
     await e.edit(f"**Note** `{name}` **doesn't exist!**")
+
 
 @polygon.on(pattern="notes")
 async def notes(e):

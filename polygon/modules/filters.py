@@ -11,6 +11,7 @@ def cache_filters() -> dict:
         filters = cache_filters()
     return filters
 
+
 def get_filters(chat_id) -> dict:
     filters = FILTERS_CACHE.get(chat_id, None)
     if filters is None:
@@ -18,11 +19,13 @@ def get_filters(chat_id) -> dict:
         filters = FILTERS_CACHE[chat_id]
     return filters
 
+
 def add_filter(chat_id, name, content):
     filters = get_filters(chat_id)
     filters[name] = content
     set_filters(FILTERS_CACHE)
     return True
+
 
 def remove_filter(chat_id, name):
     filters = get_filters(chat_id)
@@ -32,21 +35,22 @@ def remove_filter(chat_id, name):
         return True
     return False
 
+
 def clear_filters(chat_id):
     if chat_id in FILTERS_CACHE:
         del FILTERS_CACHE[chat_id]
     set_filters(FILTERS_CACHE)
     return True
 
+
 def set_filters(filters: dict):
-    polygon.db.add(
-        name=NAME,
-        value=filters
-    )
+    polygon.db.add(name=NAME, value=filters)
+
 
 # Constants
 NAME = Path(__file__).stem
 FILTERS_CACHE = cache_filters()
+
 
 @polygon.on(incoming=True)
 async def filter(e):
@@ -57,9 +61,10 @@ async def filter(e):
             if name in message:
                 if type(content) is int:
                     f = await polygon.get_messages(polygon.user.id, ids=content)
-                    await polygon.forward_messages(e.chat_id, f) # Forwarding is fast
+                    await polygon.forward_messages(e.chat_id, f)  # Forwarding is fast
                     return
                 await e.reply(content)
+
 
 @polygon.on(pattern="filter ?(.*);+?(.*)")
 async def addfilter(e):
@@ -74,7 +79,9 @@ async def addfilter(e):
         if reply:
             if reply.media:
                 await e.edit("`Saving file..`")
-                f = await polygon.forward_messages(polygon.user.id, reply) # Forwarding is fast
+                f = await polygon.forward_messages(
+                    polygon.user.id, reply
+                )  # Forwarding is fast
                 content = int(f.id)
                 await f.reply(
                     f"`[DO NOT DELETE]`\
@@ -90,6 +97,7 @@ async def addfilter(e):
     add_filter(chat_id, name, content)
     await e.edit(f"**Started filtering** `{name}` **in this chat successfully!**")
 
+
 @polygon.on(pattern="stop ?(.*)")
 async def removefilter(e):
     chat_id = str(e.chat_id)
@@ -102,6 +110,7 @@ async def removefilter(e):
         await e.edit(f"**Stopped filter** `{name}` in this chat **successfully!**")
         return
     await e.edit(f"`{name}` **is not being filtered in this chat!**")
+
 
 @polygon.on(pattern="filters")
 async def filters(e):

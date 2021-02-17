@@ -4,6 +4,7 @@
 import io
 from pathlib import Path
 
+
 @polygon.on(pattern="load")
 async def load(e):
     reply = await e.get_reply_message()
@@ -11,17 +12,19 @@ async def load(e):
         await e.edit("`Reply to a polygon module to load it.`")
         return
     await e.edit("`Trying to load module..`")
-    path = polygon.module_path / reply.file.name
+    path = polygon.modulepath / reply.file.name
     name = path.stem
     if path.exists():
         await e.edit("`Module already exists, overwriting..`")
         polygon.unload(name)
         path.unlink()
-    await polygon.download_media(reply, polygon.module_path)
+    await polygon.download_media(reply, polygon.modulepath)
     try:
         polygon.load(name)
     except Exception as exc:
-        await e.edit(f"The following error occured while unloading the module:\n`{exc}`")
+        await e.edit(
+            f"The following error occured while unloading the module:\n`{util.format_exc(exc)}`"
+        )
         return
     output = f"Loaded module {name} successfully"
     polygon.log(output)
@@ -34,7 +37,7 @@ async def unload_reload(e):
     if not module:
         await e.delete()
         return
-    path = polygon.module_path / f"{module}.py"
+    path = polygon.modulepath / f"{module}.py"
     if not path.exists():
         await e.edit(f"`404: {module} not found!`")
         return
@@ -52,10 +55,12 @@ async def unload_reload(e):
     polygon.log(output)
     await e.edit(f"`{output}`")
 
+
 @polygon.on(pattern="restart")
 async def restart(e):
     await e.edit("Polygon will be back soon!\nRun .ping to check if its back.")
     polygon.restart()
+
 
 @polygon.on(pattern="logs")
 async def logs(e):
