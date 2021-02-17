@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from telethon.sessions import StringSession
 from polygon.polygon import Polygon
-from env import env
+from polygon.env import env
 
 
 logging.basicConfig(level=logging.INFO)
