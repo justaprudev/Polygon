@@ -158,7 +158,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         self.user = await self.get_me()
         self.log(f"Logged in to {self.user.username or self.user.id}")
 
-    def restart(self):
+    async def restart(self):
         """ Restarts the telegram client. """
         await self.disconnect()
         execl(sys.executable, sys.executable, *sys.argv)
