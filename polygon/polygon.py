@@ -23,8 +23,8 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
             **credentials,
         }
         super().__init__(session, **credentials)
-        self.start(bot_token=None)
         nest_asyncio.apply()
+        self.start(bot_token=None)
         self.path = Path(__file__).parent
         self.modules = []
         self.log = logger.info

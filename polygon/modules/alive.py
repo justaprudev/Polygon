@@ -2,7 +2,7 @@
 # By justaprudev
 
 
-@polygon.on(pattern="alive")
+@polygon.on(pattern="alive", edits=True)
 async def alive(e):
     reply = await e.get_reply_message()
     await e.edit("`Fetching information..`")
