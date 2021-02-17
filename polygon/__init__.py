@@ -4,7 +4,7 @@
 import logging
 from pathlib import Path
 from telethon.sessions import StringSession
-from polygon import Polygon
+from polygon.polygon import Polygon
 from env import env
 
 
