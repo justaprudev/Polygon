@@ -150,7 +150,6 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
                 self.remove_event_handler(callback)
                 self.modules.remove(name)
 
-    async def restart(self):
+    def restart(self):
         """ Restarts the telegram client. """
-        await self.disconnect()
         execl(sys.executable, sys.executable, *sys.argv)
