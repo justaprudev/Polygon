@@ -1,7 +1,7 @@
 import traceback
 import asyncio
 
-format_exc = traceback.format_exc
+get_traceback = traceback.format_exc
 
 
 def setattributes(module, **attributes):

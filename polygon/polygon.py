@@ -116,7 +116,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         try:
             spec.loader.exec_module(module)
         except Exception as exc:  # pylint: disable=broad-except
-            self.log(util.format_exc(exc))
+            self.log(util.get_traceback())
             return False
         return name
 
