@@ -31,7 +31,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         self.modulepath = self.path / "modules"
         self.shell = util.blocking_async_shell  # temp backwards compatibility
         self.load_from_path(self.path / "__main__.py")
-        self.load_from_directory(self.path / "modules")
+        self.load_from_directory(self.modulepath)
         self.log(f"Modules loaded: {self.modules}")
         # TODO: Add polygon module packages.
 

@@ -3,9 +3,9 @@
 
 from pathlib import Path
 
-# These functions interact with the database implementation of polygon (polygon.database.Database/polygon.db)
+# db functions
 def get_gmuted() -> list:
-    gmuted_users = polygon.db.get(NAME)
+    gmuted_users = db.get(NAME)
     if gmuted_users is None:
         set_gmuted([])
         gmuted_users = get_gmuted()
@@ -35,7 +35,7 @@ def ungmute_user(uid):
 
 
 def set_gmuted(users: list):
-    polygon.db.add(name=NAME, value=users)
+    db.add(name=NAME, value=users)
 
 
 # Constants
@@ -50,7 +50,7 @@ async def gmute(e):
     if sender:
         try:
             uid = sender.id
-        except:
+        except AttributeError:
             return
     if is_gmuted(uid):
         await e.delete()
@@ -101,17 +101,17 @@ async def get_user(e):
         try:
             uid = reply.sender.id
             user = f"@{reply.sender.username}" or uid
-        except:
+        except AttributeError:
             await e.edit("`Give me a username/id!`")
             return None, None
     else:
         try:
             try:
                 user = int(user)
-            except:
+            except ValueError:
                 pass
             sender = await polygon.get_entity(user)
-        except:
+        except ValueError:
             await e.edit(f"`{user}` **user not found!**")
             return None, None
         uid = sender.id

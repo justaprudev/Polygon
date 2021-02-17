@@ -5,10 +5,9 @@ import re
 from pathlib import Path
 from telethon.tl import functions
 
-
-# These functions interact with the database implementation of polygon (polygon.database.Database/polygon.db)
+# db functions
 def get_approved() -> list:
-    approved_users = polygon.db.get(NAME)
+    approved_users = db.get(NAME)
     if not approved_users:
         set_approved([777000, polygon.user.id])
         approved_users = get_approved()
@@ -38,7 +37,7 @@ def disapprove(uid):
 
 
 def set_approved(users: list):
-    polygon.db.add(name=NAME, value=users)
+    db.add(name=NAME, value=users)
 
 
 # Constants
@@ -63,7 +62,7 @@ async def antispam(e):
     try:
         if sender.bot:
             return
-    except:
+    except AttributeError:
         pass
     approved = is_approved(uid)
     if not approved:

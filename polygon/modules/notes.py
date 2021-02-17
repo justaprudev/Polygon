@@ -3,9 +3,9 @@
 
 from pathlib import Path
 
-# These functions interact with the database implementation of polygon (polygon.database.Database/polygon.db)
+# db functions
 def get_notes() -> dict:
-    notes = polygon.db.get(NAME)
+    notes = db.get(NAME)
     if notes is None:
         set_notes({})
         notes = get_notes()
@@ -37,7 +37,7 @@ def clear_notes():
 
 
 def set_notes(notes: dict):
-    polygon.db.add(name=NAME, value=notes)
+    db.add(name=NAME, value=notes)
 
 
 # Constants
@@ -52,7 +52,7 @@ async def getnote(e):
     if not name:
         return
     if content:
-        if type(content) is int:
+        if isinstance(content, int):
             await e.edit("`Fetching file..`")
             f = await polygon.get_messages(polygon.user.id, ids=content)
             await polygon.forward_messages(e.chat_id, f)  # Forwarding is fast
@@ -70,12 +70,12 @@ async def addnote(e):
     reply = await e.get_reply_message()
     try:
         name = msg[0]
-    except:
+    except IndexError:
         await e.edit("`You need to give the note a name!`")
         return
     try:
         content = msg[1]
-    except:
+    except IndexError:
         if reply:
             if reply.media:
                 await e.edit("`Saving file..`")

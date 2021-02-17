@@ -3,9 +3,9 @@
 
 from pathlib import Path
 
-# These functions interact with the database implementation of polygon (polygon.database.Database/polygon.db)
+# db functions
 def cache_filters() -> dict:
-    filters = polygon.db.get(NAME)
+    filters = db.get(NAME)
     if filters is None:
         set_filters({})
         filters = cache_filters()
@@ -44,7 +44,7 @@ def clear_filters(chat_id):
 
 
 def set_filters(filters: dict):
-    polygon.db.add(name=NAME, value=filters)
+    db.add(name=NAME, value=filters)
 
 
 # Constants
@@ -59,7 +59,7 @@ async def filter(e):
     if chat_id in FILTERS_CACHE.keys():
         for name, content in get_filters(chat_id).items():
             if name in message:
-                if type(content) is int:
+                if isinstance(content, int):
                     f = await polygon.get_messages(polygon.user.id, ids=content)
                     await polygon.forward_messages(e.chat_id, f)  # Forwarding is fast
                     return

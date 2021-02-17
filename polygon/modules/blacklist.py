@@ -3,9 +3,9 @@
 
 from pathlib import Path
 
-# These functions interact with the database implementation of polygon (polygon.database.Database/polygon.db)
+# db functions
 def cache_blacklist() -> dict:
-    blacklist = polygon.db.get(NAME)
+    blacklist = db.get(NAME)
     if blacklist is None:
         set_blacklist({})
         blacklist = cache_blacklist()
@@ -46,7 +46,7 @@ def clear_blacklist(chat_id):
 
 
 def set_blacklist(blacklist: dict):
-    polygon.db.add(name=NAME, value=blacklist)
+    db.add(name=NAME, value=blacklist)
 
 
 # Constants
