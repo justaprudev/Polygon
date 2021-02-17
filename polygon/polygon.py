@@ -23,7 +23,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
             **credentials,
         }
         super().__init__(session, **credentials)
-        self.loop.run_until_complete(self.connect())
+        self.start(bot_token=None)
         nest_asyncio.apply()
         self.path = Path(__file__).parent
         self.modules = []
@@ -149,14 +149,6 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
             if callback.__module__ == name:
                 self.remove_event_handler(callback)
                 self.modules.remove(name)
-
-    async def connect(self):
-        """ Starts the telegram client and carries out pending operations. """
-        await self.start(bot_token=None)
-
-        # All async operations should be done here.
-        self.user = await self.get_me()
-        self.log(f"Logged in to {self.user.username or self.user.id}")
 
     async def restart(self):
         """ Restarts the telegram client. """
