@@ -112,7 +112,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         name = path.stem
         spec = importlib.util.spec_from_file_location(name, path)
         module = importlib.util.module_from_spec(spec)
-        util.setattrs(module, polygon=self, db=db, env=env, util=util)
+        util.setattributes(module, polygon=self, db=db, env=env, util=util)
         try:
             spec.loader.exec_module(module)
         except Exception as exc:  # pylint: disable=broad-except
