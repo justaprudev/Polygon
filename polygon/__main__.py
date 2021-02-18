@@ -23,7 +23,7 @@ async def load(e):
         polygon.load(name)
     except Exception as exc:
         await e.edit(
-            f"The following error occured while unloading the module:\n`{util.format_exc(exc)}`"
+            f"The following error occured while unloading the module:\n`{util.get_traceback()}`"
         )
         return
     output = f"Loaded module {name} successfully"

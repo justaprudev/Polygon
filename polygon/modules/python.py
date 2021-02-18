@@ -4,8 +4,6 @@
 import io
 import sys
 import asyncio
-import traceback
-from pathlib import Path
 from functools import wraps
 from threading import Thread
 
@@ -16,31 +14,39 @@ async def python(e):
     reply = await e.get_reply_message()
     try:
         code = e.text[1:] or reply.text
-    except:
+    except (IndexError, AttributeError):
         code = ""
     if not code.strip():
         await e.edit("`No code? no output!`")
         return
-    try:
-        stdout, stderr = await run_in_thread(code, e)
-    except:
-        await e.edit(
-            f"**Code**:\n```{code}```\n\n**Error**:\n```{traceback.format_exc()}```"
-        )
-        return
-    output = f"**Code**:\n```{code}```\n\n**stderr**:\n{stderr}\n\n**stdout**:\n```{stdout}```"
+    stdout, stderr = await run_in_thread(code, e)
+    formatted_stderr = (
+        str(stderr)
+        .split("__async__wrapper__\n")[-1]  # For errors on runtime.
+        .split("exec(formatted_code)\n")[-1]  # For errors while compiling.
+        .strip()
+    )
+    output = (
+        f"**Code**:\n```{code}```"
+        f"\n\n**stderr**:\n```{formatted_stderr}```"
+        f"\n\n**stdout**:\n```{stdout}```"
+    )
     if len(output) > 4096:
-        with io.BytesIO(str.encode(output)) as f:
+        with io.BytesIO(output.encode()) as f:
             f.name = "python.txt"
             await polygon.send_file(
-                e.chat_id, f, force_document=True, caption=code, reply_to=reply
+                e.chat_id,
+                f,
+                force_document=True,
+                caption=f"```{code}```",
+                reply_to=reply,
             )
             await e.delete()
             return
     await e.edit(output)
 
 
-def redirect_console_output(func):
+def redirect_console_output(fn):
     """ Makes a function always return console output (ignores returned output) """
 
     def set_out():
@@ -53,20 +59,20 @@ def redirect_console_output(func):
         sys.stdout, sys.stderr = defaults
         return output
 
-    if asyncio.iscoroutinefunction(func):
+    if asyncio.iscoroutinefunction(fn):
 
-        @wraps(func)
+        @wraps(fn)
         async def wrapper(*args, **kwargs):
             defaults = set_out()
-            await func(*args, **kwargs)
+            await fn(*args, **kwargs)
             return reset_out(defaults)
 
     else:
 
-        @wraps(func)
+        @wraps(fn)
         def wrapper(*args, **kwargs):
             defaults = set_out()
-            func(*args, **kwargs)
+            fn(*args, **kwargs)
             return reset_out(defaults)
 
     return wrapper
@@ -75,12 +81,12 @@ def redirect_console_output(func):
 @redirect_console_output
 async def run_in_thread(code, e):
     def sync_wrapper(loop, code, e):
-        func = "async_wrapper"
-        formatted_code = f"async def {func}(e):" + "".join(
-            [f"\n    {l}" for l in code.split("\n")]
+        fn_name = "__async__wrapper__"
+        formatted_code = f"async def {fn_name}(e):" + "".join(
+            [f"\n {l}" for l in code.split("\n")]
         )
         exec(formatted_code)
-        loop.run_until_complete(locals()[func](e))
+        loop.run_until_complete(locals()[fn_name](e))
 
     thread = Thread(target=sync_wrapper, args=[polygon.loop, code, e])
     thread.start()

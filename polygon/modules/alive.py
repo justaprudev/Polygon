@@ -6,7 +6,13 @@
 async def alive(e):
     reply = await e.get_reply_message()
     await e.edit("`Fetching information..`")
-    caption = f"**// Polygon is running //**\n\n`User:` [{polygon.user.first_name or 'Unknown'} {polygon.user.last_name or ''}](tg://user?id={polygon.user.id})\n`Github:` justaprudev.github.io/polygon (private)\n`Build: v0.1 (alpha)`\n\n**By** @justaprudev"
+    caption = (
+        "**// Polygon is running //**"
+        f"\n\n`User:` [{polygon.user.first_name or 'Unknown'} {polygon.user.last_name or ''}](tg://user?id={polygon.user.id})"
+        "\n`Github:` justaprudev.github.io/polygon"
+        "\n`Build: v0.5 (beta)`"
+        "\n\n**By** @justaprudev"
+    )
     await polygon.send_file(
         e.chat_id,
         caption=caption,

@@ -35,11 +35,11 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         self.log(f"Modules loaded: {self.modules}")
         # TODO: Add polygon module packages.
 
-    def on(self, edits=False, prefix=".", **options):
+    def on(self, edits=True, prefix=".", **options):
         """Custom decorator used to `add_event_handler` more conveniently.
 
         Args:
-            edits (bool, optional): Set to True to allow registration of edits. Defaults to False.
+            edits (bool, optional): Set to False to disable registration of edits. Defaults to True.
             prefix (str, optional): The prefix to be added before the pattern. Defaults to ".".
 
         Options:
@@ -77,7 +77,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         options = {
             "forwards": False,
             "outgoing": not options.setdefault("incoming", False),
-            # "blacklist_chats": True,
+            # TODO: Actually blacklist chats: "blacklist_chats": True,
             "chats": db.get("blacklisted_chats"),
             **options,
         }
@@ -115,7 +115,8 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         util.setattributes(module, polygon=self, db=db, env=env, util=util)
         try:
             spec.loader.exec_module(module)
-        except Exception as exc:  # pylint: disable=broad-except
+        except:  # pylint: disable=bare-except
+            # Any error in a module must not disrupt the flow of the client.
             self.log(util.get_traceback())
             return False
         return name
