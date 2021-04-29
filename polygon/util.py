@@ -1,32 +1,32 @@
-import traceback
+import sys
 import asyncio
+import subprocess
+from os import execl
+from pathlib import Path
 
-get_traceback = traceback.format_exc
+# Aliases
+from traceback import format_exc as get_traceback
+from git import Repo
+gitclone = Repo.clone_from
 
 
-def setattributes(module, **attributes):
+def restart():
+    execl(sys.executable, sys.executable, *sys.argv)
+
+def setattributes(obj, **attributes):
     for name, value in attributes.items():
-        setattr(module, name, value)
+        setattr(obj, name, value)
 
+def _pip(package):
+    subprocess.run(["pip", "install", package], check=False)
 
-# def install_packs(self):
-#     for i in self.db.get("packs", []):
-#         pack = i.rsplit("/", 1)[-1].replace(".git", "")
-#         pack_path = self.module_path / "packs" / pack
-#         if pack_path.exists():
-#             shutil.rmtree(pack_path)
-#         Repo.clone_from(i, pack_path)
-#         requirements = pack_path / "requirements.txt"
-#         if requirements.exists():
-#             for l in open(requirements, "r").read().splitlines():
-#                 if not l.startswith("#"):
-#                     subprocess.run(["pip", "install", l])
-#         try:
-#             self.load_from_directory(pack_path)
-#         except:
-#             self.log(f"Pack {pack} is not supported.")
-#             shutil.rmtree(pack_path)
-
+def pip(*packages, file=None):
+    for p in packages:
+        _pip(p)
+    if file:
+        if Path(file).exists():
+            for l in open(file, "r").readlines():
+                _pip(l)
 
 async def blocking_async_shell(cmd):
     proc = await asyncio.create_subprocess_exec(

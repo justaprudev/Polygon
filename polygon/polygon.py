@@ -4,6 +4,7 @@
 from pathlib import Path
 import importlib.util
 from os import execl
+import shutil
 import sys
 import telethon
 import nest_asyncio
@@ -33,7 +34,8 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         self.load_from_path(self.path / "__main__.py")
         self.load_from_directory(self.modulepath)
         self.log(f"Modules loaded: {self.modules}")
-        # TODO: Add polygon module packages.
+        for url in db.get("packages", []):
+            self.load_package(url)  
 
     def on(self, edits=True, prefix=".", **options):
         """Custom decorator used to `add_event_handler` more conveniently.
@@ -77,7 +79,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         options = {
             "forwards": False,
             "outgoing": not options.setdefault("incoming", False),
-            # TODO: Actually blacklist chats: "blacklist_chats": True,
+            "blacklist_chats": True,
             "chats": db.get("blacklisted_chats"),
             **options,
         }
@@ -137,7 +139,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         Args:
             name (str): The name of the module to be loaded. Must exist in the module directory.
         """
-        name = self.load_from_path(self.module_path / f"{name}.py")
+        name = self.load_from_path(self.modulepath / f"{name}.py")
         self.modules.append(name)
 
     def unload(self, name):
@@ -154,3 +156,23 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
     def restart(self):
         """ Restarts the telegram client. """
         execl(sys.executable, sys.executable, *sys.argv)
+
+    def load_package(self, url):
+        """Loads a polygon module package.
+
+        Args:
+            url (str): The git url of the polygon module.
+        """
+        # TODO: Add functionality to unload packages.
+        package_name = url.rsplit("/", 1)[-1].replace(".git", "")
+        package = self.modulepath / "packages" / package_name
+        if package.exists():
+            shutil.rmtree(package)
+        util.gitclone(url, package)
+        requirements = package / "requirements.txt"
+        if requirements.exists():
+            util.pip(file=requirements)
+        package_supported = self.load_from_directory(package)
+        if not package_supported:
+            self.log(f"Pack {package_name} is not supported.")
+            shutil.rmtree(package)
