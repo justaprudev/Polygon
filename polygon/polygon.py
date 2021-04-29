@@ -130,8 +130,11 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
             dirpath (str): The path of the directory to load modules from.
         """
         for i in Path(dirpath).glob("*.py"):
-            self.load_from_path(str(i))
+            if not self.load_from_path(str(i)):
+                return False
             self.modules.append(i.stem)
+        return True
+        
 
     def load(self, name):
         """Loads a module made for polygon.
