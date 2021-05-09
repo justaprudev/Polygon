@@ -1,4 +1,4 @@
 from os import environ
-from polygon.util import dotdict
+from .util import dotdict
 
-env = dotdict(basedict=environ)
+env = dotdict(environ)

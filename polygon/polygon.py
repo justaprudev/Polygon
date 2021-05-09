@@ -1,6 +1,7 @@
 # This file is distributed as a part of the polygon project (justaprudev.github.io/polygon)
 # By justaprudev
 
+from urllib.parse import urlparse
 from pathlib import Path
 import importlib.util
 from os import execl
@@ -8,9 +9,9 @@ import shutil
 import sys
 import telethon
 import nest_asyncio
-from polygon import util
-from polygon.env import env
-from polygon.database import db
+from . import util
+from .env import env
+from .database import db
 
 
 class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
@@ -25,7 +26,6 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         }
         super().__init__(session, **credentials)
         nest_asyncio.apply()
-        self.start(bot_token=None)
         self.path = Path(__file__).parent
         self.modules = []
         self.log = logger.info
@@ -35,7 +35,18 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         self.load_from_directory(self.modulepath)
         self.log(f"Modules loaded: {self.modules}")
         for url in db.get("packages", []):
-            self.load_package(url)  
+            self.load_package(url)
+    
+    async def start(self):
+        await super().start(bot_token=None)
+        self.user = await self.get_me()
+        await super().run_until_disconnected()
+    
+    def run_until_disconnected(self):
+        if self.loop.is_running():
+            return self.start()
+        return self.loop.run_until_complete(self.start())
+
 
     def on(self, edits=True, prefix=".", **options):
         """Custom decorator used to `add_event_handler` more conveniently.
@@ -117,7 +128,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         util.setattributes(module, polygon=self, db=db, env=env, util=util)
         try:
             spec.loader.exec_module(module)
-        except:  # pylint: disable=bare-except
+        except Exception:
             # Any error in a module must not disrupt the flow of the client.
             self.log(util.get_traceback())
             return False
@@ -135,7 +146,6 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
             self.modules.append(i.stem)
         return True
         
-
     def load(self, name):
         """Loads a module made for polygon.
 
@@ -167,7 +177,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
             url (str): The git url of the polygon module.
         """
         # TODO: Add functionality to unload packages.
-        package_name = url.rsplit("/", 1)[-1].replace(".git", "")
+        package_name = Path(urlparse(url).path).stem
         package = self.modulepath / "packages" / package_name
         if package.exists():
             shutil.rmtree(package)

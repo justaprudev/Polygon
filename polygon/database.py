@@ -5,8 +5,10 @@ import json
 from urllib.parse import urlparse
 from sqlalchemy import create_engine, Column, String, TypeDecorator
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.engine.base import Engine
 from sqlalchemy.orm import sessionmaker
-from polygon.env import env
+from .util import dotdict
+from .env import env
 
 dburl = urlparse(env.DATABASE_URL)
 if dburl.scheme == "postgres":
@@ -31,20 +33,17 @@ class Json(TypeDecorator):
 
 class Variable(Base):
     __tablename__ = "variables"
-    name = Column(String(), primary_key=True)
-    value = Column(Json())
-
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
+    name = Column(String, primary_key=True)
+    value = Column(Json)
 
 
 class Database:
-    def __init__(self, session, engine, base):
+    def __init__(self):
         Variable.__table__.create(checkfirst=True)
-        self.engine = engine
-        self.session = session
-        self.base = base
+        self.debug = dotdict(session=session, engine=engine, variable_cls=Variable, base_cls=Base)
+
+    def exists(self, name: str):
+        return bool(self.query(name))
 
     def get(self, name: str, default=None):
         variable = self.query(name)
@@ -59,8 +58,8 @@ class Database:
             if not overwrite:
                 return False
             self.remove(name)
-        self.session.add(Variable(name, value))
-        self.session.commit()
+        session.add(Variable(name=name, value=value))
+        session.commit()
         return True
 
     def update(self, data: dict) -> bool:
@@ -71,27 +70,25 @@ class Database:
     def remove(self, name: str) -> bool:
         variable = self.query(name)
         if variable:
-            self.session.delete(variable)
-            self.session.commit()
+            session.delete(variable)
+            session.commit()
             return True
         return False
 
-    def clear(self, members: list = None) -> bool:
+    def clear(self, members: tuple = None) -> bool:
         data = self.query()
-        if data:
-            for variable in data:
-                if members and variable.name not in members:
-                    continue
-                self.session.delete(variable)
-            self.session.commit()
-            return True
-        return False
+        members = members or [entry.name for entry in data]
+        for entry in data:
+            if entry.name in members:
+                session.delete(variable)
+        session.commit()
+        return bool(data)
 
-    def query(self, name=None):
-        query = self.session.query(Variable)
+    def query(self, name: str = None):
+        query = session.query(Variable)
         results = query.filter_by(name=name).first() if name else query.all()
-        self.session.close()
+        session.close()
         return results
 
 
-db = Database(session, engine, Base)
+db = Database()
