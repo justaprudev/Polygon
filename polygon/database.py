@@ -2,12 +2,17 @@
 # By justaprudev
 
 import json
+from urllib.parse import urlparse
 from sqlalchemy import create_engine, Column, String, TypeDecorator
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from polygon.env import env
 
-engine = create_engine(env.DATABASE_URL)
+dburl = urlparse(env.DATABASE_URL)
+if dburl.scheme == "postgres":
+    dburl = dburl._replace(scheme="postgresql")  # SQLAlchemy v1.4+
+
+engine = create_engine(dburl.geturl())
 Base = declarative_base(bind=engine)
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine, autoflush=False)
