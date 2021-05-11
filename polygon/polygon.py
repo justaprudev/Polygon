@@ -33,14 +33,8 @@ class Polygon(telethon.TelegramClient):
         self.shell = utility.shell
 
         
-        # Load all modules and packages
-        # self.load_module_from_path(self.path / "__main__.py")
-        # for module in Path.glob(self.path / "modules" / "builtins", "*.py"):
-        #     name = module.stem
-        #     if self.load_module_from_path(module) is True:
-        #         self.modules[name] = module
-        #     else:
-        #         self.log(f"Module {name} is not supported.")
+        # Load main module and required packages
+        self.load_module_from_path(self.path / "__main__.py")
         default_packages = ["https://github.com/polygon-packages/builtins", "https://github.com/polygon-packages/db"]
         packages = self.db.get("packages", None) or self.db.add("packages", default_packages)
         if not isinstance(packages, list):
