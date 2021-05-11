@@ -5,8 +5,9 @@ from logging import root as rootLogger
 from polygon import utility, database
 from urllib.parse import urlparse
 from pathlib import Path
-import nest_asyncio
+from os import execl
 import telethon
+import sys
 
 class Polygon(telethon.TelegramClient):
     def __init__(self, **credentials):
@@ -29,7 +30,6 @@ class Polygon(telethon.TelegramClient):
         self.modules = {}
 
         # Extras
-        nest_asyncio.apply()
         self.shell = utility.shell
 
         
@@ -54,7 +54,7 @@ class Polygon(telethon.TelegramClient):
             return self.start()
         return self.loop.run_until_complete(self.start())
 
-    def on(self, edits=True, prefix=".", **options):
+    def on(self, edits: bool=True, prefix: str=".", **options):
         """Custom decorator used to `add_event_handler` more conveniently.
 
         Args:
@@ -204,6 +204,9 @@ e
         if package.exists():
             utility.rmtree(package)
             self.packages.pop(name, None)
+        
+    def restart(self):
+        execl(sys.executable, __file__, *sys.argv)
             
 
         

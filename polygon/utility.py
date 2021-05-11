@@ -1,13 +1,10 @@
-import sys
-import time
-import asyncio
 import subprocess
 from git import Repo
+from os import environ
 from io import BytesIO
 from pathlib import Path
 from shutil import rmtree
 from functools import wraps
-from os import execl, environ
 from traceback import format_exc as get_traceback
 from importlib.util import module_from_spec, spec_from_file_location
 
@@ -28,14 +25,8 @@ def pip(*packages, file=None):
             for l in open(file, "r").readlines():
                 _pip(l)
 
-async def shell(cmd):
-    proc = await asyncio.create_subprocess_shell(
-        cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-    )
-    while proc.returncode is None:
-        time.sleep(1)
-    stdout, stderr = await proc.communicate()
-    return (stdout.decode() or None, stderr.decode() or None)
+def shell(cmd):
+    return subprocess.getoutput(cmd)
 
 def wrap_exception(new_exception, *old_exceptions):
     def decorator(fn):

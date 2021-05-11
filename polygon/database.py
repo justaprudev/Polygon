@@ -50,7 +50,7 @@ class Database:
     def dump(self) -> dict:
         return {variable.name: variable.value for variable in self.query()}
 
-    def add(self, name: str, value, overwrite=True) -> bool:
+    def add(self, name: str, value, overwrite: bool=True) -> bool:
         variable = self.query(name)
         if variable:
             if not overwrite:
