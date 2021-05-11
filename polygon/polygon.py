@@ -54,7 +54,7 @@ class Polygon(telethon.TelegramClient):
             return self.start()
         return self.loop.run_until_complete(self.start())
 
-    def on(self, edits: bool=True, prefix: str=".", **options):
+    def on(self, edits: bool=True, prefix: str=None, **options):
         """Custom decorator used to `add_event_handler` more conveniently.
 
         Args:
@@ -101,7 +101,7 @@ e
             **options,
         }
 
-        prefix = f"\\{prefix}"
+        prefix = self.db.get("prefix", "\\.") if prefix is None else f"\\{prefix}"
         if "pattern" in options:
             options["pattern"] = prefix + options["pattern"]
         elif prefix != self.db.get("prefix"):
