@@ -78,7 +78,7 @@ def _execute_module(self):
 def module_from_path(path: Path):
     spec = spec_from_file_location(path.stem, path)  
     module =  module_from_spec(spec)
-    setattr(module, "execute", _execute_module)
+    setattr(module, "execute", _execute_module.__get__(module))
     return module
 
 def buffer(content:str, name="unnamed", *args):
