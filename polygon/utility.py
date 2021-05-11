@@ -1,11 +1,16 @@
+import sys
+import time
 import asyncio
 import subprocess
-from pathlib import Path
-from functools import wraps
-
-# Aliases
-from traceback import format_exc as get_traceback
 from git import Repo
+from io import BytesIO
+from pathlib import Path
+from shutil import rmtree
+from functools import wraps
+from os import execl, environ
+from traceback import format_exc as get_traceback
+from importlib.util import module_from_spec, spec_from_file_location
+
 gitclone = Repo.clone_from
 
 def setattributes(obj, **attributes):
@@ -23,10 +28,12 @@ def pip(*packages, file=None):
             for l in open(file, "r").readlines():
                 _pip(l)
 
-async def blocking_async_shell(cmd):
+async def shell(cmd):
     proc = await asyncio.create_subprocess_shell(
         cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
+    while proc.returncode is None:
+        time.sleep(1)
     stdout, stderr = await proc.communicate()
     return (stdout.decode() or None, stderr.decode() or None)
 
@@ -37,10 +44,9 @@ def wrap_exception(new_exception, *old_exceptions):
             try:
                 return fn(*args, **kwargs)
             except old_exceptions as exc:
-                raise exception(*exc.args) from None
+                raise new_exception(*exc.args) from None
         return wrapper
     return decorator
-
 
 class dotdict(dict):
     """ A dictionary that allows attribute-style access. """
@@ -61,3 +67,23 @@ class dotdict(dict):
     @wrap_exception(AttributeError, KeyError)
     def __delattr__(self, *args, **kwargs):
         return super().__delitem__(*args, **kwargs)
+
+def _execute_module(self):
+    try:
+        self.__spec__.loader.exec_module(self)
+        return True
+    except Exception as exception:
+        return get_traceback()
+
+def module_from_path(path: Path):
+    spec = spec_from_file_location(path.stem, path)  
+    module =  module_from_spec(spec)
+    setattr(module, "execute", _execute_module)
+    return module
+
+def buffer(content:str, name="unnamed", *args):
+    buffer = BytesIO(content.encode(), *args)
+    buffer.name = name
+    return buffer
+
+env = dotdict(environ)

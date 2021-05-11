@@ -3,12 +3,10 @@
 
 import json
 from urllib.parse import urlparse
-from sqlalchemy import create_engine, Column, String, TypeDecorator
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.engine.base import Engine
+from .utility import dotdict, env
 from sqlalchemy.orm import sessionmaker
-from .util import dotdict
-from .env import env
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, Column, String, TypeDecorator
 
 dburl = urlparse(env.DATABASE_URL)
 if dburl.scheme == "postgres":
@@ -75,11 +73,11 @@ class Database:
             return True
         return False
 
-    def clear(self, members: tuple = None) -> bool:
+    def clear(self, members: list = None) -> bool:
         data = self.query()
         members = members or [entry.name for entry in data]
-        for entry in data:
-            if entry.name in members:
+        for variable in data:
+            if variable.name in members:
                 session.delete(variable)
         session.commit()
         return bool(data)
@@ -89,6 +87,3 @@ class Database:
         results = query.filter_by(name=name).first() if name else query.all()
         session.close()
         return results
-
-
-db = Database()

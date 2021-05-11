@@ -1,41 +1,41 @@
 # This file is distributed as a part of the polygon project (justaprudev.github.io/polygon)
 # By justaprudev
 
+from logging import root as rootLogger
+from polygon import utility, database
 from urllib.parse import urlparse
 from pathlib import Path
-import importlib.util
-from os import execl
-import shutil
-import sys
 import telethon
-import nest_asyncio
-from . import util
-from .env import env
-from .database import db
 
 
 class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
-    def __init__(self, logger, session, **credentials):
-        """ Creates a new instance of Polygon and logs in to telegram. """
-        self.name = "Polygon"
+    def __init__(self, **credentials):
+        # Initialization
+        self.name = type(self).__name__
         credentials = {
             "device_model": "Userbot",
             "app_version": f"// {self.name}",
             "lang_code": "en",
             **credentials,
         }
-        super().__init__(session, **credentials)
-        nest_asyncio.apply()
+        super().__init__(**credentials)
+
+        # Essentials
         self.path = Path(__file__).parent
-        self.modules = []
-        self.log = logger.info
-        self.modulepath = self.path / "modules"
-        self.shell = util.blocking_async_shell  # temp backwards compatibility
+        self.db = database.Database()
+        self.env = utility.env
+        self.packages = {}
+        self.modules = {}
+        self.log = rootLogger.info
+
+        # Extras
+        self.shell = utility.shell
+
+        # Load all modules and packages
         self.load_from_path(self.path / "__main__.py")
-        self.load_from_directory(self.modulepath)
-        self.log(f"Modules loaded: {self.modules}")
-        for url in db.get("packages", []):
-            self.load_package(url)
+        self.load_from_directory(self.path / "modules")
+        self.add_packages(*self.db.get("packages", []))
+        self.log(f"Modules loaded: {self.modules} \nPackages loaded: {self.packages}")
     
     async def start(self):
         await super().start(bot_token=None)
@@ -46,7 +46,6 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         if self.loop.is_running():
             return self.start()
         return self.loop.run_until_complete(self.start())
-
 
     def on(self, edits=True, prefix=".", **options):
         """Custom decorator used to `add_event_handler` more conveniently.
@@ -91,7 +90,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
             "forwards": False,
             "outgoing": not options.setdefault("incoming", False),
             "blacklist_chats": True,
-            "chats": db.get("blacklisted_chats"),
+            "chats": self.db.get("blacklisted_chats"),
             **options,
         }
 
@@ -101,9 +100,9 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         elif prefix != "\\.":
             options["pattern"] = prefix
 
-        events = [telethon.events.NewMessage(**options)]
+        events = {telethon.events.NewMessage(**options)}
         if edits:
-            events.append(telethon.events.MessageEdited(**options))
+            events.add(telethon.events.MessageEdited(**options))
 
         def decorator(fn):
             for event in events:
@@ -112,80 +111,92 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
 
         return decorator
 
-    def load_from_path(self, path):
-        """Loads a specific module from a given path.
+    def load_module_from_path(self, path: Path):
+        """Loads a module from it's path.
 
         Args:
-            path (str): The path of the python module to be loaded.
+            path (Path): The path of the python module to be loaded.
 
         Returns:
-            [string]: The name of the loaded module.
+            [bool]: If the module has been successfully loaded or not.
         """
-        path = Path(path)
-        name = path.stem
-        spec = importlib.util.spec_from_file_location(name, path)
-        module = importlib.util.module_from_spec(spec)
-        util.setattributes(module, polygon=self, db=db, env=env, util=util)
-        try:
-            spec.loader.exec_module(module)
-        except Exception:
-            # Any error in a module must not disrupt the flow of the client.
-            self.log(util.get_traceback())
-            return False
-        return name
-
-    def load_from_directory(self, dirpath):
-        """Loads all modules in a specific directory.
-
-        Args:
-            dirpath (str): The path of the directory to load modules from.
-        """
-        for i in Path(dirpath).glob("*.py"):
-            if not self.load_from_path(str(i)):
-                return False
-            self.modules.append(i.stem)
-        return True
+        module = utility.module_from_path(path)
+        utility.setattributes(module, polygon=self, db=self.db, env=self.env, utility=utility)
+        return module.execute()
         
-    def load(self, name):
-        """Loads a module made for polygon.
+    def load_module(self, name: str):
+        """Loads a module with just it's name.
 
         Args:
-            name (str): The name of the module to be loaded. Must exist in the module directory.
+            name (str): The name of the module to be loaded. Must exist in self.path / 'modules' directory.
         """
-        name = self.load_from_path(self.modulepath / f"{name}.py")
-        self.modules.append(name)
+        module = self.path / "modules" / f"{name}.py"
+        module_supported = self.load_from_path(module)
+        if module_supported is not True:
+            return self.log(module_supported)
+        self.modules[name] = module
 
-    def unload(self, name):
+    def unload_module(self, name: str, scope: dict = None):
         """Unloads a (loaded) module.
 
         Args:
             name (str): The name of the module to be unloaded.
         """
+        scope = scope or self.modules
         for callback, _ in self.list_event_handlers():
             if callback.__module__ == name:
                 self.remove_event_handler(callback)
-                self.modules.remove(name)
+                del scope[name]
 
-    def restart(self):
-        """ Restarts the telegram client. """
-        execl(sys.executable, sys.executable, *sys.argv)
+    def add_packages(self, *urls):
+        for url in urls:
+            self.add_package(url)
 
-    def load_package(self, url):
-        """Loads a polygon module package.
+    def add_package(self, url: str):
+        """Downloads and enables a polygon module package.
 
         Args:
             url (str): The git url of the polygon module.
         """
-        # TODO: Add functionality to unload packages.
-        package_name = Path(urlparse(url).path).stem
-        package = self.modulepath / "packages" / package_name
+        parsed_url = urlparse(url)
+        name = Path(parsed_url.path).stem
+        package = self.path / "packages" / name
+
         if package.exists():
-            shutil.rmtree(package)
-        util.gitclone(url, package)
+            self.remove_package(name)
+
+        utility.gitclone(url, package)
         requirements = package / "requirements.txt"
         if requirements.exists():
-            util.pip(file=requirements)
-        package_supported = self.load_from_directory(package)
-        if not package_supported:
-            self.log(f"Pack {package_name} is not supported.")
-            shutil.rmtree(package)
+            utility.pip(file=requirements)
+
+        package_modules = set()
+        for module in package.glob("*.py"):
+            module_supported = self.load_module_from_path(module)
+            if module_supported is not True:
+                # Stop loading modules if any one is unsupported/broken
+                # And unload all existing modules of that package
+                self.log(f"Package {name} is not supported.")
+                self.log(f"Due to:\n{module_supported}")
+                self.packages[name] = package_modules
+                self.remove_package(name)
+                break
+            package_modules.add(module)
+        self.packages[name] = package_modules
+    
+    def remove_package(self, name: str):
+        """Removes a polygon module package.
+
+        Args:
+            name (str): Name of the module package
+        """
+        package = self.path / "packages" / name
+        package_modules = self.packages.get(name, [])
+        for module in package_modules:
+            self.unload_module(module, self.packages)
+        if package.exists():
+            utility.rmtree(package)
+
+            
+
+        
