@@ -5,8 +5,8 @@ from logging import root as rootLogger
 from polygon import utility, database
 from urllib.parse import urlparse
 from pathlib import Path
+import nest_asyncio
 import telethon
-
 
 class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
     def __init__(self, **credentials):
@@ -29,6 +29,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         self.log = rootLogger.info
 
         # Extras
+        nest_asyncio.apply()
         self.shell = utility.shell
 
         # Load all modules and packages
