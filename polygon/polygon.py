@@ -23,10 +23,10 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         # Essentials
         self.path = Path(__file__).parent
         self.db = database.Database()
+        self.log = rootLogger.info
         self.env = utility.env
         self.packages = {}
         self.modules = {}
-        self.log = rootLogger.info
 
         # Extras
         nest_asyncio.apply()
@@ -204,6 +204,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
             self.unload_module(module, self.packages)
         if package.exists():
             utility.rmtree(package)
+            del self.packages[name]
 
             
 
