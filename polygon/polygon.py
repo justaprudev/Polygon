@@ -42,7 +42,9 @@ class Polygon(telethon.TelegramClient):
         #     else:
         #         self.log(f"Module {name} is not supported.")
         default_packages = ["https://github.com/polygon-packages/builtins", "https://github.com/polygon-packages/db"]
-        packages = self.db.get("packages") or self.db.add("packages", default_packages) or default_packages
+        packages = self.db.get("packages") or self.db.add("packages", default_packages)
+        if not isinstance(packages, list):
+            default_packages
         self.add_packages(*packages)
 
         self.log(f"Modules loaded: {list(self.modules)} \nPackages loaded: {list(self.packages)}")
