@@ -46,10 +46,10 @@ async def unload_and_reload(e):
     await e.edit(f"`{output}`")
 
 
-# @polygon.on(pattern="restart")
-# async def restart(e):
-#     await e.edit("Polygon will be back soon!\nRun .ping to check if its back.")
-#     polygon.restart()
+@polygon.on(pattern="restart")
+async def restart(e):
+    await e.edit("Polygon will be back soon!\nRun .ping to check if its back.")
+    polygon.restart()
 
 
 @polygon.on(pattern="logs")
