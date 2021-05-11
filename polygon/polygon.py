@@ -35,6 +35,7 @@ class Polygon(telethon.TelegramClient):
         
         # Load main module and required packages
         self.load_module_from_path(self.path / "__main__.py")
+        Path(self.path / "modules").mkdir(exist_ok=True)
         default_packages = ["https://github.com/polygon-packages/builtins", "https://github.com/polygon-packages/db"]
         packages = self.db.get("packages", None) or self.db.add("packages", default_packages)
         if not isinstance(packages, list):
