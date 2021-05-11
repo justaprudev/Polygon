@@ -32,8 +32,9 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         self.shell = utility.shell
 
         # Load all modules and packages
-        self.load_from_path(self.path / "__main__.py")
-        self.load_from_directory(self.path / "modules")
+        self.load_module_from_path(self.path / "__main__.py")
+        for module in Path(self.path / "modules", "*.py"):
+            self.load_module_from_path(module)
         self.add_packages(*self.db.get("packages", []))
         self.log(f"Modules loaded: {self.modules} \nPackages loaded: {self.packages}")
     
