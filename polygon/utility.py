@@ -26,7 +26,7 @@ def pip(*packages, file=None):
                 _pip(l)
 
 def shell(cmd):
-    return subprocess.getoutput(cmd)
+    return subprocess.getoutput(cmd) or None
 
 def wrap_exception(new_exception, *old_exceptions):
     def decorator(fn):
