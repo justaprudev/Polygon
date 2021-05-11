@@ -36,7 +36,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         for module in Path.glob(self.path / "modules", "*.py"):
             self.load_module_from_path(module)
         self.add_packages(*self.db.get("packages", []))
-        self.log(f"Modules loaded: {self.modules} \nPackages loaded: {self.packages}")
+        self.log(f"Modules loaded: {list(self.modules)} \nPackages loaded: {list(self.packages)}")
     
     async def start(self):
         await super().start(bot_token=None)
