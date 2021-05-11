@@ -25,11 +25,10 @@ async def load(e):
 @polygon.on(pattern="(un|re)load ?(.*)")
 async def unload_and_reload(e):
     module = e.pattern_match.group(2)
-    if not module:
+    path = polygon.modules.get(module)
+    if not path:
         return await e.delete()
-    path = polygon.path / "modules" / f"{module}.py"
-
-    if not path.exists():
+    elif not path.exists():
         return await e.edit(f"`404: {module} not found!`")
     
     if e.pattern_match.group(1) == "un":

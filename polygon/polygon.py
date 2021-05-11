@@ -8,7 +8,7 @@ from pathlib import Path
 import nest_asyncio
 import telethon
 
-class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
+class Polygon(telethon.TelegramClient):
     def __init__(self, **credentials):
         # Initialization
         self.name = type(self).__name__
@@ -32,17 +32,19 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         nest_asyncio.apply()
         self.shell = utility.shell
 
+        
         # Load all modules and packages
-        self.load_module_from_path(self.path / "__main__.py")
-        for module in Path.glob(self.path / "modules", "*.py"):
-            name = module.stem
-            if self.load_module_from_path(module) is True:
-                self.modules[name] = module
-            else:
-                self.log(f"Module {name} is not supported.") 
+        # self.load_module_from_path(self.path / "__main__.py")
+        # for module in Path.glob(self.path / "modules" / "builtins", "*.py"):
+        #     name = module.stem
+        #     if self.load_module_from_path(module) is True:
+        #         self.modules[name] = module
+        #     else:
+        #         self.log(f"Module {name} is not supported.")
+        default_packages = ["https://github.com/polygon-packages/builtins", "https://github.com/polygon-packages/db"]
+        packages = self.db.get("packages") or self.db.add("packages", default_packages) or default_packages
+        self.add_packages(*packages)
 
-
-        self.add_packages(*self.db.get("packages", []))
         self.log(f"Modules loaded: {list(self.modules)} \nPackages loaded: {list(self.packages)}")
     
     async def start(self):
@@ -74,7 +76,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
                 Defaults to True.
 
             from_users (`entity`, optional):
-                Unlike `chats`, this parameter filters the *senders* of the
+                Unlike `chats`, this parameter filters the *sendrs* of the
                 message. That is, only messages *sent by these users* will be
                 handled. Use `chats` if you want private messages with this/these
                 users. `from_users` lets you filter by messages sent by *one or
@@ -86,7 +88,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
                 *only* forwards will be handled. If it's `False` only messages
                 that are *not* forwards will be handled.
                 Defaults to False.
-
+e
             pattern (`str`, `callable`, `Pattern`, optional):
                 If set, only messages matching this pattern will be handled.
                 You can specify a regex-like string which will be matched
@@ -105,7 +107,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         prefix = f"\\{prefix}"
         if "pattern" in options:
             options["pattern"] = prefix + options["pattern"]
-        elif prefix != "\\.":
+        elif prefix != self.db.get("prefix"):
             options["pattern"] = prefix
 
         events = {telethon.events.NewMessage(**options)}
@@ -154,7 +156,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         for callback, _ in self.list_event_handlers():
             if callback.__module__ == name:
                 self.remove_event_handler(callback)
-                del scope[name]
+                scope.pop(name)
 
     def add_packages(self, *urls):
         for url in urls:
@@ -178,7 +180,7 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         if requirements.exists():
             utility.pip(file=requirements)
 
-        package_modules = set()
+        package_modules: set = set()
         for module in package.glob("*.py"):
             module_supported = self.load_module_from_path(module)
             if module_supported is not True:
@@ -201,11 +203,10 @@ class Polygon(telethon.TelegramClient):  # pylint: disable=too-many-ancestors
         package = self.path / "packages" / name
         package_modules = self.packages.get(name, [])
         for module in package_modules:
-            self.unload_module(module, self.packages)
+            self.unload_module(module.stem, self.packages)
         if package.exists():
             utility.rmtree(package)
-            del self.packages[name]
-
+            self.packages.pop(name)
             
 
         

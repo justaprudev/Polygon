@@ -21,7 +21,7 @@ def start():
     if session:
         logger.info("Polygon is now online!")
         polygon = Polygon(
-            session=StringSession(str(session)),
+            session=StringSession(session),
             api_id=env.APP_ID,
             api_hash=env.API_HASH,
         )
