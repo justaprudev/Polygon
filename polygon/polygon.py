@@ -42,9 +42,9 @@ class Polygon(telethon.TelegramClient):
         #     else:
         #         self.log(f"Module {name} is not supported.")
         default_packages = ["https://github.com/polygon-packages/builtins", "https://github.com/polygon-packages/db"]
-        packages = self.db.get("packages") or self.db.add("packages", default_packages)
+        packages = self.db.get("packages", None) or self.db.add("packages", default_packages)
         if not isinstance(packages, list):
-            default_packages
+            packages = default_packages
         self.add_packages(*packages)
 
         self.log(f"Modules loaded: {list(self.modules)} \nPackages loaded: {list(self.packages)}")
@@ -158,7 +158,7 @@ e
         for callback, _ in self.list_event_handlers():
             if callback.__module__ == name:
                 self.remove_event_handler(callback)
-                scope.pop(name)
+                scope.pop(name, None)
 
     def add_packages(self, *urls):
         for url in urls:
@@ -208,7 +208,7 @@ e
             self.unload_module(module.stem, self.packages)
         if package.exists():
             utility.rmtree(package)
-            self.packages.pop(name)
+            self.packages.pop(name, None)
             
 
         
