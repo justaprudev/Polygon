@@ -3,8 +3,8 @@
 
 def start():
     import logging
-    from .env import env
-    from .polygon import Polygon
+    from utility import env
+    from polygon import Polygon
     from telethon.sessions import StringSession
 
     logging.basicConfig(level=logging.INFO)
