@@ -206,7 +206,7 @@ e
             self.packages.pop(name, None)
         
     def restart(self):
-        execl(sys.executable, __file__, *sys.argv)
+        execl(sys.executable, sys.executable, *sys.argv)
             
 
         
