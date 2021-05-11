@@ -137,7 +137,7 @@ e
             name (str): The name of the module to be loaded. Must exist in self.path / 'modules' directory.
         """
         module = self.path / "modules" / f"{name}.py"
-        module_supported = self.load_from_path(module)
+        module_supported = self.load_module_from_path(module)
         if module_supported is not True:
             return self.log(module_supported)
         self.modules[name] = module
