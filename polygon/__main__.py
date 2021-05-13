@@ -40,7 +40,7 @@ async def unload_and_reload(e):
     else:
         if module in polygon.modules:
             polygon.unload_module(module)
-        polygon.load(module)
+        polygon.load_module(module)
         output = f"Reloaded module {module} successfully"
 
     await e.edit(f"`{output}`")
@@ -59,7 +59,7 @@ async def logs(e):
     if log.exists():
         # We need to reverse the logs in order to show the lastest first
         reversed_logs = "".join(reversed(open(log, "r").readlines()))
-        await e.respond(file=utility.buffer(log.name))
+        await e.respond(file=utility.buffer(reversed_logs, log.name))
         await e.delete()
     else:
         await e.edit("`Enable to find logfile [polygon.log].`")

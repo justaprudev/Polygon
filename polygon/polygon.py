@@ -187,9 +187,10 @@ e
                 self.log(f"Due to:\n{module_supported}")
                 self.packages[name] = package_modules
                 self.remove_package(name)
-                break
+                return module_supported
             package_modules[module.stem] = (module)
         self.packages[name] = package_modules
+        return True
     
     def remove_package(self, name: str):
         """Removes a polygon module package.
