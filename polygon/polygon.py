@@ -155,7 +155,7 @@ e
                 self.remove_event_handler(callback)
                 # There is no room for error here!
                 # scope.pop(name, None)
-                self.log(name, "got here.")
+                print(name, "got here.")
                 del scope[name]
 
     def add_packages(self, *urls):
@@ -206,8 +206,7 @@ e
             self.unload_module(module, package_modules)
         if package.exists():
             utility.rmtree(package)
-            # self.packages.pop(name, None)
-            del self.packages[name]
+            self.packages.pop(name, None)
         
     def restart(self):
         execl(sys.executable, sys.executable, *sys.argv)
