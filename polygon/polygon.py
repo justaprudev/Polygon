@@ -34,16 +34,21 @@ class Polygon(telethon.TelegramClient):
         self.shell = utility.shell
 
         
-        # Load main module and required packages
+        # Load required packages
         self.load_module_from_path(self.path / "__main__.py")
         Path(self.path / "modules").mkdir(exist_ok=True)
-        default_packages = {"builtins": "https://github.com/polygon-packages/builtins", "db": "https://github.com/polygon-packages/db"}
+        
+        default_packages = {
+            "builtins": "https://github.com/polygon-packages/builtins",
+            "db": "https://github.com/polygon-packages/db",
+            "interfaces": "https://github.com/polygon-packages/interfaces"
+            }
         packages = self.db.get("packages", None)
         if not isinstance(packages, dict):
             packages = default_packages
-            self.db.add("packages", packages) 
-        self.add_packages(**packages)
+            self.db.add("packages", packages)
 
+        self.add_packages(*packages.values())
         self.log(f"Modules loaded: {list(self.modules)} \nPackages loaded: {list(self.packages)}")
     
     async def start(self):
@@ -157,8 +162,8 @@ e
             if callback.__module__ == name:
                 self.remove_event_handler(callback)
 
-    def add_packages(self, **urls):
-        for url in urls.values():
+    def add_packages(self, *urls):
+        for url in urls:
             self.add_package(url)
 
     def add_package(self, url: str):
@@ -177,7 +182,7 @@ e
         try:
             utility.gitclone(url, package)
         except utility.git.GitCommandError:
-            return "Url could not be resolved."
+            return "Package URL could not be resolved."
         requirements = package / "requirements.txt"
         if requirements.exists():
             utility.pip(file=requirements)
