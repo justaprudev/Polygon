@@ -1,5 +1,5 @@
+import git
 import subprocess
-from git import Repo
 from os import environ
 from io import BytesIO
 from pathlib import Path
@@ -8,7 +8,7 @@ from functools import wraps
 from traceback import format_exc as get_traceback
 from importlib.util import module_from_spec, spec_from_file_location
 
-gitclone = Repo.clone_from
+gitclone = git.Repo.clone_from
 
 def setattributes(obj, **attributes):
     for name, value in attributes.items():

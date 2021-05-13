@@ -1,6 +1,7 @@
 # This file is distributed as a part of the polygon project (justaprudev.github.io/polygon)
 # By justaprudev
 
+from importlib import util
 from logging import root as rootLogger
 from polygon import utility, database
 from urllib.parse import urlparse
@@ -173,7 +174,10 @@ e
         if package.exists():
             self.remove_package(name)
 
-        utility.gitclone(url, package)
+        try:
+            utility.gitclone(url, package)
+        except utility.git.GitCommandError:
+            return "Url could not be resolved."
         requirements = package / "requirements.txt"
         if requirements.exists():
             utility.pip(file=requirements)
