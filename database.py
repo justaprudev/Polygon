@@ -3,7 +3,7 @@
 
 import json
 from urllib.parse import urlparse
-from .utility import dotdict, env
+from utility import dotdict, env
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Column, String, TypeDecorator

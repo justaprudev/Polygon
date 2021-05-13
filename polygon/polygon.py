@@ -1,13 +1,13 @@
 # This file is distributed as a part of the polygon project (justaprudev.github.io/polygon)
 # By justaprudev
 
-from importlib import util
 from logging import root as rootLogger
-from polygon import utility, database
+from database import Database
 from urllib.parse import urlparse
 from pathlib import Path
 from os import execl
 import telethon
+import utility
 import sys
 
 class Polygon(telethon.TelegramClient):
@@ -24,7 +24,7 @@ class Polygon(telethon.TelegramClient):
 
         # Essentials
         self.path = Path(__file__).parent
-        self.db = database.Database()
+        self.db = Database()
         self.log = rootLogger.info
         self.env = utility.env
         self.packages = {}
