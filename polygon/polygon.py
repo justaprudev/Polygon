@@ -147,8 +147,10 @@ e
         module = self.path / "modules" / f"{name}.py"
         module_supported = self.load_module_from_path(module)
         if module_supported is not True:
-            return self.log(module_supported)
+            self.log(module_supported)
+            return module_supported
         self.modules[name] = module
+        return True
 
     def unload_module(self, name: str, scope: dict = None):
         """Unloads a (loaded) module.
