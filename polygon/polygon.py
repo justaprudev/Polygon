@@ -199,7 +199,7 @@ e
         """
         package = self.path / "packages" / name
         package_modules = self.packages.get(name, {})
-        for module in package_modules:
+        for module in package_modules.copy():
             self.unload_module(module, package_modules)
         if package.exists():
             utility.rmtree(package)
