@@ -155,6 +155,7 @@ e
                 self.remove_event_handler(callback)
                 # There is no room for error here!
                 # scope.pop(name, None)
+                self.log(name, "got here.")
                 del scope[name]
 
     def add_packages(self, *urls):
@@ -200,7 +201,7 @@ e
             name (str): Name of the module package
         """
         package = self.path / "packages" / name
-        package_modules = self.packages.get(name, [])
+        package_modules = self.packages.get(name, {})
         for module in package_modules:
             self.unload_module(module, package_modules)
         if package.exists():
