@@ -150,12 +150,13 @@ e
             name (str): The name of the module to be unloaded.
         """
         scope = scope or self.modules
+        print(name, "was outside loop with scope", scope)
         for callback, _ in self.list_event_handlers():
             if callback.__module__ == name:
                 self.remove_event_handler(callback)
                 # There is no room for error here!
                 # scope.pop(name, None)
-                print(name, "got here.")
+                print(name, "was in loop with scope", scope)
                 del scope[name]
 
     def add_packages(self, *urls):
