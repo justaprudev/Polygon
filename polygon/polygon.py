@@ -153,7 +153,9 @@ e
         for callback, _ in self.list_event_handlers():
             if callback.__module__ == name:
                 self.remove_event_handler(callback)
-                scope.pop(name, None)
+                # There is no room for error here!
+                # scope.pop(name, None)
+                del scope[name]
 
     def add_packages(self, *urls):
         for url in urls:
@@ -177,7 +179,7 @@ e
         if requirements.exists():
             utility.pip(file=requirements)
 
-        package_modules: set = set()
+        package_modules: dict = {}
         for module in package.glob("*.py"):
             module_supported = self.load_module_from_path(module)
             if module_supported is not True:
@@ -188,7 +190,7 @@ e
                 self.packages[name] = package_modules
                 self.remove_package(name)
                 break
-            package_modules.add(module)
+            package_modules[module.stem] = (module)
         self.packages[name] = package_modules
     
     def remove_package(self, name: str):
@@ -200,10 +202,11 @@ e
         package = self.path / "packages" / name
         package_modules = self.packages.get(name, [])
         for module in package_modules:
-            self.unload_module(module.stem, self.packages)
+            self.unload_module(module, package_modules)
         if package.exists():
             utility.rmtree(package)
-            self.packages.pop(name, None)
+            # self.packages.pop(name, None)
+            del self.packages[name]
         
     def restart(self):
         execl(sys.executable, sys.executable, *sys.argv)
