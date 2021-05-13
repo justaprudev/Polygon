@@ -205,6 +205,8 @@ e
         if package.exists():
             utility.rmtree(package)
             self.packages.pop(name, None)
+            return True
+        return False
         
     def restart(self):
         execl(sys.executable, sys.executable, *sys.argv)
