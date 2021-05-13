@@ -36,11 +36,11 @@ class Polygon(telethon.TelegramClient):
         # Load main module and required packages
         self.load_module_from_path(self.path / "__main__.py")
         Path(self.path / "modules").mkdir(exist_ok=True)
-        default_packages = ["https://github.com/polygon-packages/builtins", "https://github.com/polygon-packages/db"]
+        default_packages = {"builtins": "https://github.com/polygon-packages/builtins", "db": "https://github.com/polygon-packages/db"}
         packages = self.db.get("packages", None) or self.db.add("packages", default_packages)
-        if not isinstance(packages, list):
+        if not isinstance(packages, dict):
             packages = default_packages
-        self.add_packages(*packages)
+        self.add_packages(**packages)
 
         self.log(f"Modules loaded: {list(self.modules)} \nPackages loaded: {list(self.packages)}")
     
@@ -155,8 +155,8 @@ e
             if callback.__module__ == name:
                 self.remove_event_handler(callback)
 
-    def add_packages(self, *urls):
-        for url in urls:
+    def add_packages(self, **urls):
+        for url in urls.values():
             self.add_package(url)
 
     def add_package(self, url: str):
@@ -188,8 +188,11 @@ e
                 self.packages[name] = package_modules
                 self.remove_package(name)
                 return module_supported
-            package_modules[module.stem] = (module)
+            package_modules[module.stem] = module
         self.packages[name] = package_modules
+        packages = db.get("packages")
+        packages[name] = url
+        db.add("packages", packages)
         return True
     
     def remove_package(self, name: str):
@@ -205,6 +208,9 @@ e
         if package.exists():
             utility.rmtree(package)
             self.packages.pop(name, None)
+            packages = db.get("packages")
+            packages.pop(name, None)
+            db.add("packages", packages)
             return True
         return False
         
