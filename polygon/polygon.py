@@ -190,9 +190,9 @@ e
                 return module_supported
             package_modules[module.stem] = module
         self.packages[name] = package_modules
-        packages = db.get("packages")
+        packages = self.db.get("packages")
         packages[name] = url
-        db.add("packages", packages)
+        self.db.add("packages", packages)
         return True
     
     def remove_package(self, name: str):
@@ -208,9 +208,9 @@ e
         if package.exists():
             utility.rmtree(package)
             self.packages.pop(name, None)
-            packages = db.get("packages")
+            packages = self.db.get("packages")
             packages.pop(name, None)
-            db.add("packages", packages)
+            self.db.add("packages", packages)
             return True
         return False
         
