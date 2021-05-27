@@ -1,3 +1,2 @@
 # These are the optional requirements that will continue to change over time
 aria2p
-pymegatools
